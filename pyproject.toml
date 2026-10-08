@@ -29,3 +29,4 @@ aqf-analysis = { workspace = true }
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "Data Analysis/tests"]
+addopts = "-p no:cacheprovider"   # no .pytest_cache folder
