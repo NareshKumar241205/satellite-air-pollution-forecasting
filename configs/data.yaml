@@ -1,0 +1,50 @@
+# Data configuration. Paths are relative to the project root (Scratch/).
+paths:
+  dataset: Dataset/data              # raw data, read-only
+  manifest: Dataset/data/dataset_manifest.csv
+  s5p_dir: Dataset/data/s5p_composites
+  s2_dir: Dataset/data/s2_composites
+  processed: data/processed          # derived, rebuildable
+  outputs: outputs/analysis
+
+gases: [NO2, CO, SO2]                # S5P band order (bands 1..3), unit mol/m^2
+
+# Display units only. Raw values stay in mol/m^2.
+display:
+  NO2: {scale: 1.0e+6, unit: "µmol/m²"}
+  CO:  {scale: 1.0e+3, unit: "mmol/m²"}
+  SO2: {scale: 1.0e+6, unit: "µmol/m²"}
+
+s2_bands: [B2, B3, B4, B5, B6, B7, B8, B11, B12, NDVI, NDBI, NDMI]
+
+# India Meteorological Department seasons. Chennai gets most of its rain in the NE monsoon (Oct-Dec).
+seasons:
+  Winter: [1, 2]
+  Pre-monsoon: [3, 4, 5]
+  SW monsoon: [6, 7, 8, 9]
+  NE monsoon: [10, 11, 12]
+
+# Split by year. Used now only to label plots. Later, anything fitted (scalers, climatology) uses train years only.
+split:
+  train_years: [2019, 2020, 2021, 2022]
+  val_years: [2023]
+  test_years: [2024]
+
+# COVID-19 national lockdown, used for the NO2 natural-experiment check.
+lockdown: {start: "2020-03-25", end: "2020-05-31"}
+
+hubs:                                # [lat, lon], from Dataset/dataset.md
+  Manali/CPCL: [13.16, 80.26]
+  Ennore TPS/Port: [13.20, 80.32]
+  Ambattur: [13.10, 80.16]
+  Guindy: [13.01, 80.20]
+  Chennai Port: [13.09, 80.29]
+
+# Exact zeros are missing retrievals (cloud-screened pixels written as 0), not clean air. Evidence from
+# `aqf quality`: CO has no values between 0 and 0.0145 mol/m^2 (its median is 0.038), zeros sit in spatially
+# clustered patches, and they peak in the cloudy monsoon months. They are set to NaN for these gases.
+# A gas map counts as usable for a window if at least `min_coverage` of the area pixels is valid after that.
+quality:
+  zeros_as_missing: [NO2, CO, SO2]
+  min_coverage: 0.5
+  outlier_robust_z: 6.0              # flag only, never delete

@@ -1,0 +1,9 @@
+__pycache__/
+*.py[oc]
+.pytest_cache/
+.venv
+
+# Raw data, derived data and outputs are large or rebuildable: never commit them
+Dataset/
+data/
+outputs/
