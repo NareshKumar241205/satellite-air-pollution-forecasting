@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A final-year project on satellite air-pollution forecasting over Chennai. It was rebuilt from scratch on 2026-10-08,
 and the earlier code isn't part of this repo. Phase 1 (data analysis) is done (`Data Analysis/REPORT.md`). Phase 2 (forecasting) follows `Forecasting/PLAN.md`:
-F0 and F1 are done (`Forecasting/REPORT.md`) and F2 (LightGBM/Ridge) is next. Read both reports before modelling work.
+F0 and F1 are done (`Forecasting/REPORT.md`) and F2 (LightGBM/Ridge) is next. Read both reports before modelling work. `PROJECT_STATUS.md` summarises the status and headline numbers, so update it after each phase.
 
 ## Commands
 

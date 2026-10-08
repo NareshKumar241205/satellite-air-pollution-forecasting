@@ -3,6 +3,8 @@
 Sentinel-5P NO2/CO/SO2 column maps (5-day composites, 2019–2024, ~5 km) are the pollution signal.
 Sentinel-2 surface reflectance (100 m) is land-surface context. Raw data lives in `Dataset/` (see `Dataset/dataset.md`).
 
+Current status, key results and next steps: [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
+
 The project is a uv workspace. The shared core package `aqf` (`src/aqf/`) holds the config, data loading and
 data-quality rules. Each phase lives in its own folder with its own code, tests, results and report.
 
