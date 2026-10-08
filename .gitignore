@@ -22,3 +22,8 @@ Forecasting/results/F5_final/*
 
 # Executed notebook copies and PNGs from tools/view_tiff.ipynb
 tools/outputs/
+
+# Claude Code files (local only)
+CLAUDE.md
+CLAUDE.local.md
+.claude/
