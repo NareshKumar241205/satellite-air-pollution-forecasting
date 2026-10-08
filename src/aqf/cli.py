@@ -1,4 +1,4 @@
-"""Command line: `uv run aqf <step>`. Each step writes to outputs/analysis/<NN_step>/."""
+"""Command line: `uv run aqf <step>`. Each step writes to `Data Analysis/<NN_step>/` (paths.outputs in configs/data.yaml)."""
 
 from __future__ import annotations
 

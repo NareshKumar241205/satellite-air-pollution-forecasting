@@ -22,8 +22,9 @@ uv run aqf spatial           # 04 mean/seasonal maps, hotspots, industrial hubs
 uv run aqf s2                # 05 Sentinel-2 coverage and spectral indices (streamed)
 ```
 
-Outputs go to `outputs/analysis/<NN_step>/` as CSV tables and PNG figures. The findings are written up in
-[`docs/01_data_analysis.md`](docs/01_data_analysis.md).
+Everything goes to the `Data Analysis/` folder, with one sub-folder per step (`01_inventory/` … `05_sentinel2/`)
+holding CSV tables and PNG figures. The findings are written up in
+[`Data Analysis/REPORT.md`](<Data Analysis/REPORT.md>).
 
 ## Layout
 
@@ -34,5 +35,5 @@ src/aqf/series.py        zero handling, per-window quality table, area-mean and 
 src/aqf/stats.py         seasonal Mann-Kendall, seasonal Sen slope, Benjamini-Hochberg FDR
 src/aqf/plotting.py      shared figure style, gas maps with hubs
 src/aqf/analysis/        inventory, quality, trends, spatial, s2 (one module per step)
-docs/                    written findings
+Data Analysis/           analysis results (generated) + REPORT.md (written findings)
 ```

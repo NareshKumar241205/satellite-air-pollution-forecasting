@@ -1,7 +1,7 @@
 # 01 — Data analysis: Chennai Sentinel-5P / Sentinel-2, 2019–2024
 
 To reproduce, run `uv run aqf analysis` (about 1 minute). It writes every number and figure below to
-`outputs/analysis/<step>/`. The analysis is descriptive and covers all six years. Nothing in it is fitted
+the step sub-folders next to this file (`01_inventory/` … `05_sentinel2/`). The analysis is descriptive and covers all six years. Nothing in it is fitted
 for a model, except the Sentinel-2 long-term maps, which use only the train years 2019–2022.
 
 ## 1. What the data actually is (step 01_inventory)

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A final-year project on satellite air-pollution forecasting over Chennai. It was rebuilt from scratch on 2026-10-08,
 and the earlier code isn't part of this repo. Phase 1 (data analysis) is done. The findings and the design
-implications for forecasting are in `docs/01_data_analysis.md`. Read that file before modelling work.
+implications for forecasting are in `Data Analysis/REPORT.md`. Read that file before modelling work.
 
 ## Commands
 
@@ -28,18 +28,18 @@ uv run aqf <inventory|cube|quality|trends|spatial|s2>
 - `series.py` is the single place where data-quality rules apply. `clean_values` turns zeros into NaN,
   `window_table` flags usable windows (≥ `min_coverage` valid pixels), and `analysis_values` gives the cleaned and masked
   cube that every pixel-level analysis must use. Don't read `cube.values` directly in an analysis.
-- Each `analysis/<step>.py` has a `run()` that writes to `outputs/analysis/<NN_step>/`. `cli.py` wires them up.
+- Each `analysis/<step>.py` has a `run()` that writes to `Data Analysis/<NN_step>/` (set by `paths.outputs`). `cli.py` wires them up.
 
 ## Data facts that bite
 
 - S5P: the 13×13 grid has 12×12 valid pixels. Row 12 and column 0 are always `-inf`.
-- **Exact zeros are missing retrievals, not clean air** (evidence in `docs/01_data_analysis.md` §2). SO2 is 39 % zeros,
+- **Exact zeros are missing retrievals, not clean air** (evidence in `Data Analysis/REPORT.md` §2). SO2 is 39 % zeros,
   and only 79 % of its windows are usable.
 - Sentinel-2 exists for only 290 of 438 windows (monsoon cloud gaps). About 40 % of each raster is sea. NDMI is exactly −NDBI.
 - GDAL logs a harmless photometric/ExtraSamples warning for the S2 TIFFs. The CLI silences the `rasterio` logger.
 
 ## Rules
 
-- `Dataset/` is raw and immutable. `data/` and `outputs/` are derived and gitignored. Never commit them.
+- `Dataset/` is raw and immutable. `data/` and the generated step folders in `Data Analysis/` are derived and gitignored (only `REPORT.md` there is tracked). Never commit them.
 - Split by year: train 2019–2022, val 2023, test 2024. Anything fitted (scalers, climatology, S2 composites) uses train
   years only. Descriptive analysis may use all years.
