@@ -46,6 +46,16 @@ uv run aqf-forecast final            # F5: score 2024 ONCE (locked afterwards) +
 uv run aqf-forecast outlook          # F5 outlook only
 ```
 
+## Viewing any GeoTIFF
+
+```bash
+uv run python tools/view_tiff.py Dataset/data/s5p_composites/s5p_20200301.tif          # all bands + metadata
+uv run python tools/view_tiff.py Dataset/data/s2_composites/s2_20200301.tif --rgb      # Sentinel-2 true colour
+uv run python tools/view_tiff.py Forecasting/results/F5_final/outlook_2025/outlook_NO2_2025.tif --bands 1 6 12 18 24 30
+```
+
+Add `--info` for metadata only, or `--out fig.png` to save instead of opening a window.
+
 ## Layout
 
 ```
