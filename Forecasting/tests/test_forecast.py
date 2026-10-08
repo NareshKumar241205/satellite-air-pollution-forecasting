@@ -96,3 +96,37 @@ def test_no_lookahead_in_f2_features():
     fs2 = build(p, f, 0, None, train, sd=fs.sd)           # same fitted scale, corrupted future
     X1, _, _ = rows_for(fs2, np.array([t0, t0]), np.array([1, 30]))
     assert np.array_equal(X0, X1, equal_nan=True)
+
+
+def test_ablation_variants_remove_real_features():
+    """Every 'drop' ablation must match at least one feature name, or it would silently test nothing."""
+    from aqf_forecast.ablations import VARIANTS
+    from aqf_forecast.features import build
+    from aqf_forecast.problem import fit, load_problem
+
+    try:
+        p = load_problem()
+    except FileNotFoundError:
+        pytest.skip("raw dataset not present")
+    train = p.windows("train")
+    fs = build(p, fit(p, train), 0, {"land_frac": np.zeros((13, 13))}, train)
+    for name, opts in VARIANTS.items():
+        for prefix in opts.get("drop", []):
+            assert any(n.startswith(prefix) for n in fs.names), (name, prefix)
+    multi = build(p, fit(p, train), 0, None, train, other_gases=True)
+    assert len(multi.names) > len(build(p, fit(p, train), 0, None, train, other_gases=False).names)
+
+
+def test_rolling_fit_predict_only_scores_the_held_out_year():
+    from aqf_forecast.ablations import fit_predict
+    from aqf_forecast.problem import load_problem
+
+    try:
+        p = load_problem()
+    except FileNotFoundError:
+        pytest.skip("raw dataset not present")
+    years = np.array([d.year for d in p.dates])
+    pred = fit_predict(p, "NO2", "A", "ridge", {"ridge_alpha": 1.0}, years < 2022, years == 2022)
+    target_years = years[1:]                              # lead 1: target of origin t is window t+1
+    has_pred = np.isfinite(pred[:-1, 0, 0]).any(axis=(1, 2))
+    assert has_pred.any() and np.all(target_years[has_pred] == 2022)

@@ -43,8 +43,9 @@ class FeatureSet:
 
 
 def build(p: Problem, f: Fitted, g: int, s2: dict[str, np.ndarray] | None, fit_mask: np.ndarray,
-          sd: float | None = None) -> FeatureSet:
-    """sd: anomaly scale; by default the train-window anomaly sd of the gas (pass it to reuse a fitted scale)."""
+          sd: float | None = None, other_gases: bool | None = None) -> FeatureSet:
+    """sd: anomaly scale; by default the train-window anomaly sd of the gas (pass it to reuse a fitted scale).
+    other_gases: add the other gases' anomalies (default from `f2.other_gases` in the config)."""
     fc = p.fcfg["f2"]
     fp = p.cube.footprint
     rows, cols = np.nonzero(fp)
@@ -81,7 +82,7 @@ def build(p: Problem, f: Fitted, g: int, s2: dict[str, np.ndarray] | None, fit_m
         add(f"area_mean{n}", np.nan_to_num(_trailing_nanmean(area, n)))
         add(f"pixel_mean{n}", np.nan_to_num(_trailing_nanmean(z, n)))
     add("n_valid_last6", _trailing_nanmean(np.isfinite(z).astype(float), 6) * 6)
-    if fc.get("other_gases"):
+    if fc.get("other_gases") if other_gases is None else other_gases:
         for g2, gas2 in enumerate(p.gases):
             if g2 != g:
                 z2 = f.anom[:, g2] / float(np.nanstd(f.anom[:, g2][fit_mask][:, fp]))

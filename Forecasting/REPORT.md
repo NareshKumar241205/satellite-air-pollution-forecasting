@@ -185,3 +185,74 @@ changes direction.
   | SO2 | climatology | climatology |
 
   All use residual intervals. F4 ablations come first, to confirm which inputs matter.
+
+---
+
+# F4: Ablations, rolling-origin robustness, seasonal gate
+
+To reproduce, run `uv run aqf-forecast ablations` (about 30 s; it needs F2 first). Results are in `results/F4_ablations/`.
+Hyperparameters are frozen from F2: Ridge α and LightGBM rounds. Brackets are 95 % block-bootstrap CIs.
+
+## 1. Ablations on validation 2023 (`ablations_val.csv`, `fig_ablations.png`)
+
+One change at a time. The table shows skill relative to the full model; negative means the change hurts.
+
+| Change | NO2 task A (5 d) | NO2 task B, 35–150 d | CO task A (5 d) |
+|---|---|---|---|
+| no Sentinel-2 features | +0.0 [−0.0, +0.1] | −0.0 | −1.8 [−5.7, +1.7] |
+| Sentinel-2 shuffled across pixels | +0.0 | −0.0 | +0.0 |
+| no 3×3 neighbours | **−0.4 [−0.6, −0.1]** | +0.0 | −0.1 |
+| no missing-data flags | +0.3 | **−0.4 [−0.7, −0.2]** | −0.3 |
+| **no 30/60/90-day trailing means** | −2.4 [−5.7, +0.9] | **−4.3 [−6.2, −2.1]** | +0.3 |
+| add the other gases | −0.2 | +0.5 | +0.5 |
+| train without Apr–Jun 2020 | −0.5 | **+1.3 [+0.9, +1.7]** | +1.4 |
+
+- **The trailing (30–90-day) mean anomalies are the only input that matters for the long range.** Without them the NO2
+  35–150-day skill falls from +5.6 % to +1.6 %.
+- **Sentinel-2 adds nothing to forecasting.** Removing or shuffling it doesn't change skill. S2 describes *where* NO2
+  is high, which the per-pixel climatology already holds (F0).
+- Neighbours, missing-data flags and other gases are worth at most a few tenths of a percent.
+
+## 2. Rolling origin: does the F2 choice hold in other years? (`rolling_origin.csv`, `fig_rolling_origin.png`)
+
+For each year Y, everything is refit on the years before Y and Y is scored. 2021 trains on two years and 2022 on three, so the
+learned models get less data in those years. Skill is against the seasonal climatology.
+
+| Year | NO2 task A: Ridge / damped | NO2 10–30 d: Ridge / damped | **NO2 35–150 d: Ridge / damped** | CO task A: LightGBM / damped |
+|---|---|---|---|---|
+| 2021 | +2.0 / +3.9 | +0.9 / +0.6 | **−3.5 [−6.7, −0.9]** / −0.1 | −1.9 / **+18.8** |
+| 2022 | −0.0 / +0.9 | **+1.4 [+0.3, +2.3]** / −0.0 | +1.1 [+0.3, +1.9] / −0.0 | +6.0 / +8.3 |
+| 2023 | **+12.7** / +6.6 | **+6.7** / +1.2 | **+5.6** / +0.5 | **+15.5** / +9.4 |
+
+**The F2 conclusions don't hold outside 2023. Plainly:**
+- **The NO2 long-range (35–150 d) skill isn't robust.** It is +5.6 % in 2023 and only +1.1 % in 2022. In 2021 it is
+  **significantly worse than the seasonal average (−3.5 %)**. The slow NO2 component exists, but whether it helps depends on the year.
+- **The task A learned models don't beat damped persistence reliably.**
+  - NO2: Ridge beats damped persistence only in 2023.
+  - CO: LightGBM loses to damped persistence in 2021 and 2022. In 2021 it is 25 % worse (significant).
+- **What does hold every year:**
+  - Damped persistence is positive at 5 days in every year for both gases.
+  - NO2 Ridge at 10–30 days is ≥ damped persistence in all three years (significant in 2022 and 2023).
+
+## 3. NE-monsoon gate (`seasonal_gate.csv`)
+
+The gate replaces the model forecast with climatology for targets in Oct–Dec.
+- It helps in some year/gas combinations (CO task A: +3.6 in 2021, +0.8 in 2022) and hurts in others
+  (CO 2023 −1.5; NO2 2021 and 2022: −0.5 to −1.4).
+- **It doesn't help consistently, so it isn't adopted.** The Oct–Dec weakness is real, but a hard switch to climatology doesn't fix it.
+
+## Revised model choice (frozen for F5)
+
+| Gas | Task A (5 d) | Task B, 10–30 d | Task B, 35–150 d |
+|---|---|---|---|
+| NO2 | **damped persistence** (positive every year) | **Ridge** (≥ damped in all 3 years) | **climatology** |
+| CO | **damped persistence** | climatology | climatology |
+| SO2 | climatology | climatology | climatology |
+
+- All of these use the out-of-sample residual intervals, which are close to calibrated.
+- Two models are kept as **secondary candidates** and scored once in F5 next to the primary choice, so the report can say how they did. They don't change the primary forecast:
+  - NO2 Ridge at 5 days and at 35–150 days
+  - CO LightGBM at 5 days
+- **Bottom line for the 150-day outlook.** Beyond about a month, the honest forecast is the seasonal climatology with calibrated
+  bands. The satellite record has information about *where* and *in which season* pollution is high, but not about
+  whether the next 2–5 months will be above or below normal.

@@ -23,8 +23,8 @@ The rules follow from `Data Analysis/REPORT.md`:
 | **F1 Baselines** | climatology, persistence, damped anomaly persistence; task A and task B; RMSE, MAE, skill vs climatology, anomaly correlation; residual-quantile 10/90 % intervals with coverage and CRPS per lead; block-bootstrap CIs | done, see REPORT.md |
 | F2 Learned models | per-gas LightGBM pooled over pixels plus a Ridge reference. Inputs are anomaly lags, the 3×3 neighbourhood, other gases, season, static S2 per pixel and validity masks. For task B, the lead is a feature (direct multi-horizon). Quantile versions give the 10/90 % bands | done, see REPORT.md |
 | F3 ConvLSTM | small spatio-temporal network, **only if** F0/F2 show spatial/temporal structure that the tree models miss | not justified (F2), skipped |
-| F4 Ablations | S2 off / S2 shuffled; own gas vs multi-gas; no neighbours; no validity masks; exclude 2020 Q2 (lockdown, already done in F2) | next |
-| F5 Test | single scoring of the 2024 test year with frozen configs, then refit on 2019–2024 and produce the Jan–May 2025 outlook | |
+| F4 Ablations | S2 off / S2 shuffled; own gas vs multi-gas; no neighbours; no validity masks; exclude 2020 Q2; plus rolling-origin years 2021–2023 and an NE-monsoon gate | done, see REPORT.md (model choice revised) |
+| F5 Test | single scoring of the 2024 test year with frozen configs, then refit on 2019–2024 and produce the Jan–May 2025 outlook | waiting for go-ahead |
 
 ## Deliverables (F5)
 - Task A: a GeoTIFF of the t+1 map per gas with its 10/90 % bands, and a CSV of the area mean.

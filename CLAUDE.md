@@ -6,17 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A final-year project on satellite air-pollution forecasting over Chennai. It was rebuilt from scratch on 2026-10-08,
 and the earlier code isn't part of this repo. Phase 1 (data analysis) is done (`Data Analysis/REPORT.md`). Phase 2 (forecasting) follows `Forecasting/PLAN.md`:
-F0, F1 and F2 are done (`Forecasting/REPORT.md`), F3 (ConvLSTM) was skipped as unjustified, and F4 ablations are next. Read both reports before modelling work. `PROJECT_STATUS.md` summarises the status and headline numbers, so update it after each phase.
+F0, F1, F2 and F4 are done (`Forecasting/REPORT.md`), and F3 (ConvLSTM) was skipped. F4's rolling-origin check revised
+the model choice (see the REPORT table). F5 (the single 2024 test plus the Jan–May 2025 outlook) waits for the user's go-ahead. Read both reports before modelling work. `PROJECT_STATUS.md` summarises the status and headline numbers, so update it after each phase.
 
 ## Commands
 
 ```bash
 uv sync                                        # installs the core `aqf` + workspace members (Data Analysis)
-uv run pytest -q                               # 16 tests, about 3 s; tests/test_data.py skips if Dataset/ is absent
+uv run pytest -q                               # 18 tests, about 2 s; tests/test_data.py skips if Dataset/ is absent
 uv run pytest "Data Analysis/tests/test_stats.py::test_fdr_bh_matches_hand_computation" -q
 uv run aqf-analysis all --no-hash              # every analysis step, about 1 min
 uv run aqf-analysis <inventory|cube|quality|trends|spatial|s2>
-uv run aqf-forecast <forecastability|baselines|learned|all>   # F0/F1 about 30 s, F2 about 3 min
+uv run aqf-forecast <forecastability|baselines|learned|ablations|all>   # F2 about 3 min; F4 needs F2's training_info.csv
 ```
 
 ## Architecture

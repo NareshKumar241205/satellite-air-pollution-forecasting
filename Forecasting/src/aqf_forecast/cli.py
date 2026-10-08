@@ -12,7 +12,8 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("forecastability", help="F0: autocorrelation, cross-gas, neighbours, S2 vs long-term mean")
     sub.add_parser("baselines", help="F1: climatology / persistence / damped persistence, tasks A and B on validation")
     sub.add_parser("learned", help="F2: LightGBM + Ridge for tasks A and B, compared with the baselines on validation")
-    sub.add_parser("all", help="F0, F1 and F2")
+    sub.add_parser("ablations", help="F4: ablations, rolling-origin years 2021-2023, NE-monsoon gate (needs F2 first)")
+    sub.add_parser("all", help="F0, F1, F2 and F4")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s: %(message)s", datefmt="%H:%M:%S")
     logging.getLogger("rasterio").setLevel(logging.ERROR)   # harmless S2 TIFF header warning
@@ -32,3 +33,7 @@ def main(argv: list[str] | None = None) -> None:
         from aqf_forecast import learned
 
         learned.run(p)
+    if args.cmd in ("ablations", "all"):
+        from aqf_forecast import ablations
+
+        ablations.run(p)

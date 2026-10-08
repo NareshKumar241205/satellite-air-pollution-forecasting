@@ -6,9 +6,9 @@ numbers were checked against the reports.
 
 | Check | Result |
 |---|---|
-| `uv run pytest -q` | **16 passed** (~3 s) |
+| `uv run pytest -q` | **18 passed** (~2 s) |
 | `uv run aqf-analysis all` | completed, 53 s, 18 figures + tables |
-| `uv run aqf-forecast all` | completed: F0 + F1 about 30 s, F2 learned models about 3 min |
+| `uv run aqf-forecast all` | completed: F0 + F1 about 30 s, F2 about 3 min, F4 about 30 s |
 | Git | `main`, local, working tree clean before this file |
 
 ## 1. What has been done
@@ -20,7 +20,7 @@ numbers were checked against the reports.
   - `src/aqf/`: shared core (data loading, quality rules, climatology, S2 features)
   - `Data Analysis/`: phase 1
   - `Forecasting/`: phase 2
-- Git history: 6 commits, one per step.
+- Git history: one commit per step.
 
 **Phase 1: Data Analysis** (done, [`Data Analysis/REPORT.md`](<Data Analysis/REPORT.md>))
 - Inventory and integrity: 438 five-day windows, one grid per sensor, SHA-256 provenance.
@@ -28,13 +28,14 @@ numbers were checked against the reports.
 - Trends: STL decomposition, seasonal Mann–Kendall / Sen slope, per-pixel trend maps with FDR correction.
 - COVID lockdown effect, spatial hotspots, industrial hubs, and a Sentinel-2 summary.
 
-**Phase 2: Forecasting** (F0, F1, F2 done, [`Forecasting/PLAN.md`](Forecasting/PLAN.md), [`Forecasting/REPORT.md`](Forecasting/REPORT.md))
+**Phase 2: Forecasting** (F0, F1, F2, F4 done, F3 skipped, [`Forecasting/PLAN.md`](Forecasting/PLAN.md), [`Forecasting/REPORT.md`](Forecasting/REPORT.md))
 - Two tasks:
   - **A**: the next 5-day map.
   - **B**: the **150-day outlook** (30 leads).
 - F0 forecastability: anomaly autocorrelation, cross-gas and neighbour predictive correlation, and Sentinel-2 land cover vs pollution with a spatial-block permutation test.
 - F1 baselines: climatology, persistence and damped anomaly persistence. Metrics are skill, CRPS, interval coverage and block-bootstrap CIs.
 - F2 learned models: LightGBM and Ridge per gas, pooled over pixels. Task A is a lead-1 model and task B a multi-horizon model with the lead as a feature. 27 features, including 30/60/90-day trailing anomalies. A no-leakage test covers the features, and there's a 2020 Q2 (lockdown) robustness check.
+- F4: ablations (S2, neighbours, flags, trailing means, other gases, 2020 Q2), a **rolling-origin check over 2021, 2022 and 2023**, and an NE-monsoon gate. **The model choice was revised as a result.**
 - Fitted on train 2019–2022 and scored on validation 2023. **The 2024 test year is untouched.**
 
 ## 2. Key results
@@ -69,24 +70,43 @@ Skill means MSE skill against the per-pixel seasonal climatology. Positive means
 | CO | 5 days | 10 days (Ridge) | +1.2 % |
 | SO2 | 0 | 0 | ≈ 0 |
 
-- The NO2 long-lead skill comes from slow, area-wide anomalies (60/90-day trailing means). It **survives
-  excluding the 2020 lockdown** from training (Ridge +5.6 % → +6.9 % at 35–150 days).
-- The 80 % intervals from out-of-sample residuals are close to calibrated (coverage 0.76–0.83). Quantile-LightGBM bands under-cover (0.73–0.77).
-- ConvLSTM (F3) isn't justified: the signal is area-wide, slow and near-linear.
-- Sentinel-2: mean NDVI vs long-term NO2 gives ρ = −0.53 (block-permutation p = 0.026). The S2 features aren't among the top model features.
+**But the F2 results don't hold outside 2023 (F4 rolling origin: train on the years before Y, score Y)**
+
+| Year | NO2 5 d: Ridge / damped | NO2 10–30 d: Ridge / damped | NO2 35–150 d: Ridge / damped | CO 5 d: LightGBM / damped |
+|---|---|---|---|---|
+| 2021 | +2.0 / +3.9 | +0.9 / +0.6 | **−3.5** / −0.1 | −1.9 / **+18.8** |
+| 2022 | −0.0 / +0.9 | +1.4 / −0.0 | +1.1 / −0.0 | +6.0 / +8.3 |
+| 2023 | +12.7 / +6.6 | +6.7 / +1.2 | +5.6 / +0.5 | +15.5 / +9.4 |
+
+- **The NO2 long-range skill depends on the year.** It is strong in 2023, small in 2022, and significantly *worse* than climatology in 2021.
+- The learned 5-day models beat damped persistence only in 2023. Damped persistence is positive every year.
+- Ablations (2023): the 30–90-day trailing means are the only input that matters for the long range. **Sentinel-2 adds nothing** (removing or shuffling it changes nothing). Neighbours and other gases add tenths of a percent.
+- The NE-monsoon gate (climatology for Oct–Dec) doesn't help consistently, so it isn't adopted.
+
+**Revised model choice (frozen for F5)**
+
+| Gas | 5 days | 10–30 days | 35–150 days |
+|---|---|---|---|
+| NO2 | damped persistence | Ridge | climatology |
+| CO | damped persistence | climatology | climatology |
+| SO2 | climatology | climatology | climatology |
+
+- The secondary candidates are NO2 Ridge at 5 days and at 35–150 days, and CO LightGBM at 5 days. They'll be scored once in F5 for the record.
+- **Beyond about a month, the honest 150-day outlook is the seasonal climatology with calibrated 80 % bands** (coverage 0.76–0.83).
+- Sentinel-2: mean NDVI vs long-term NO2 gives ρ = −0.53 (block-permutation p = 0.026). It explains *where* NO2 is high, not *when*.
 
 ## 3. Not done yet
 
 | Phase | Content |
 |---|---|
-| **F4** (next) | Ablations: S2 off/shuffled, own vs multi-gas, no neighbours, no masks (the 2020 Q2 check is done in F2) |
-| **F5** | Score 2024 **once** with frozen configs. Candidate models: NO2 Ridge (A and B), CO LightGBM (A) / climatology (B), SO2 climatology. Then refit on 2019–2024 and produce the **Jan–May 2025 outlook**: a 30-band GeoTIFF per gas (mean, 10 %, 90 %), a 30-row CSV, fan charts, and hotspot series for Manali NO2 and Ennore SO2, plus the next-5-day map |
+| **F5** (waiting for go-ahead) | Score 2024 **once** with the frozen revised choice above, plus the secondary candidates. Then refit on 2019–2024 and produce the **Jan–May 2025 outlook**: a 30-band GeoTIFF per gas (mean, 10 %, 90 %), a 30-row CSV, fan charts, and hotspot series for Manali NO2 and Ennore SO2, plus the next-5-day map |
 
 ## 4. Risks and limitations
 - **Six years is short.** Trend tests have low power, and only one validation year and one test year exist.
 - **SO2 is noisy.** 39 % of its pixels are zeros, 21 % of its windows are unusable, and nothing beats climatology. Its outlook will be climatology only.
-- **2023 (validation) was the highest-NO2 year**, which favours 'the anomaly persists' models. 2024 fell 15 %, so the single test will show whether the long-lead NO2 skill holds.
-- **Learned models are worse than climatology for NO2 in the NE monsoon (Oct–Dec).**
+- **2023 (validation) was the highest-NO2 year** and flattered the learned models. The rolling-origin check exposed this, and the choice was revised.
+- **Model selection used 2021–2023**, so the single 2024 score is the only unbiased estimate.
+- **NO2 is weak in the NE monsoon (Oct–Dec)**, and a simple gate didn't fix it.
 - **Validation numbers drive model choice** and are therefore optimistic. Only the single 2024 score is unbiased.
 - **The old pipeline exists only in the system trash.** Don't empty the trash if any of it might still be needed.
 
@@ -96,5 +116,5 @@ Skill means MSE skill against the per-pixel seasonal climatology. Positive means
 uv sync
 uv run pytest -q
 uv run aqf-analysis all      # phase 1, about 1 min, results in "Data Analysis/results/"
-uv run aqf-forecast all      # phase 2 F0 + F1 + F2, about 3.5 min, results in Forecasting/results/
+uv run aqf-forecast all      # phase 2 F0 + F1 + F2 + F4, about 4 min, results in Forecasting/results/
 ```
