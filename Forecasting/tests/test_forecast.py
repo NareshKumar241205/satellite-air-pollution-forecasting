@@ -67,3 +67,32 @@ def test_no_lookahead_in_baselines():
     for m in MODELS:
         after = predict(m, p, f, 5)[t0]
         assert np.allclose(before[m], after, equal_nan=True), m
+
+
+def test_trailing_mean_uses_only_the_past():
+    from aqf_forecast.features import _trailing_nanmean
+
+    x = np.array([1.0, np.nan, 3.0, 5.0, 100.0])
+    m = _trailing_nanmean(x, 3)
+    assert np.isclose(m[2], 2.0) and np.isclose(m[3], 4.0) and np.isclose(m[1], 1.0)
+
+
+def test_no_lookahead_in_f2_features():
+    """Every feature of an (origin t0, lead) row must be unchanged when all windows after t0 are altered."""
+    from aqf_forecast.features import build, rows_for
+    from aqf_forecast.problem import fit, load_problem
+
+    try:
+        p = load_problem()
+    except FileNotFoundError:
+        pytest.skip("raw dataset not present")
+    t0 = 150
+    train = p.windows("train")
+    f = fit(p, train)
+    fs = build(p, f, 0, None, train)
+    X0, _, _ = rows_for(fs, np.array([t0, t0]), np.array([1, 30]))
+    f.anom = f.anom.copy()
+    f.anom[t0 + 1:] = np.random.default_rng(0).normal(size=f.anom[t0 + 1:].shape)
+    fs2 = build(p, f, 0, None, train, sd=fs.sd)           # same fitted scale, corrupted future
+    X1, _, _ = rows_for(fs2, np.array([t0, t0]), np.array([1, 30]))
+    assert np.array_equal(X0, X1, equal_nan=True)

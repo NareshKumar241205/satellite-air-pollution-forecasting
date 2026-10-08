@@ -25,3 +25,24 @@ forecastability:
   max_lag: 30
   permutation_n: 2000
   permutation_block: 3                # 3x3-pixel spatial blocks for the NDBI-NO2 permutation test
+
+# F2 learned models (Forecasting/PLAN.md). One model per gas, pooled over pixels. Task B adds lead as a feature.
+f2:
+  min_origin: 17                      # origins need 18 windows of history for the longest trailing mean
+  lags: 6                             # own-pixel anomaly lags 0..5
+  neighbour_lags: 3
+  trailing: [6, 12, 18]               # trailing-mean windows (30/60/90 days) for area and pixel anomalies
+  other_gases: false                  # F0: cross-gas partial r <= 0.026, so off by default (F4 ablation turns it on)
+  lightgbm:
+    objective: regression
+    learning_rate: 0.05
+    num_leaves: 15
+    min_data_in_leaf: 500
+    feature_fraction: 0.8
+    bagging_fraction: 0.8
+    bagging_freq: 1
+    lambda_l2: 1.0
+    max_rounds: 1500
+    early_stopping: 50                # on validation 2023 (so validation scores are optimistic; 2024 decides)
+  ridge_alphas: [0.1, 1, 10, 100, 1000, 10000]
+  exclude_2020q2: ["2020-04-01", "2020-06-30"]   # lockdown check on the long-persistence signal

@@ -6,17 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A final-year project on satellite air-pollution forecasting over Chennai. It was rebuilt from scratch on 2026-10-08,
 and the earlier code isn't part of this repo. Phase 1 (data analysis) is done (`Data Analysis/REPORT.md`). Phase 2 (forecasting) follows `Forecasting/PLAN.md`:
-F0 and F1 are done (`Forecasting/REPORT.md`) and F2 (LightGBM/Ridge) is next. Read both reports before modelling work. `PROJECT_STATUS.md` summarises the status and headline numbers, so update it after each phase.
+F0, F1 and F2 are done (`Forecasting/REPORT.md`), F3 (ConvLSTM) was skipped as unjustified, and F4 ablations are next. Read both reports before modelling work. `PROJECT_STATUS.md` summarises the status and headline numbers, so update it after each phase.
 
 ## Commands
 
 ```bash
 uv sync                                        # installs the core `aqf` + workspace members (Data Analysis)
-uv run pytest -q                               # 14 tests, about 5 s; tests/test_data.py skips if Dataset/ is absent
+uv run pytest -q                               # 16 tests, about 3 s; tests/test_data.py skips if Dataset/ is absent
 uv run pytest "Data Analysis/tests/test_stats.py::test_fdr_bh_matches_hand_computation" -q
 uv run aqf-analysis all --no-hash              # every analysis step, about 1 min
 uv run aqf-analysis <inventory|cube|quality|trends|spatial|s2>
-uv run aqf-forecast <forecastability|baselines|all>   # Forecasting F0/F1, about 40 s
+uv run aqf-forecast <forecastability|baselines|learned|all>   # F0/F1 about 30 s, F2 about 3 min
 ```
 
 ## Architecture
@@ -37,7 +37,9 @@ uv run aqf-forecast <forecastability|baselines|all>   # Forecasting F0/F1, about
   climatology (`aqf/anomaly.py`) and the damped-persistence coefficients on a window mask. Every model returns
   predicted values of shape (T origins, H leads, G, 13, 13) for all origins at once. A pair's split is that of its
   *target* window (`target_obs`, `_target_split`). Intervals and CRPS come from leave-one-train-year-out residuals.
-  `tests/test_forecast.py::test_no_lookahead_in_baselines` guards against future leakage, so extend it for every new model.
+  `tests/test_forecast.py::test_no_lookahead_in_baselines` and `test_no_lookahead_in_f2_features` guard against
+  future leakage, so extend them for every new model or feature. `features.py` builds rows (origin, lead, pixel) in
+  standardised anomaly units, `learned.py` fits LightGBM/Ridge, and `evaluate.score` scores any dict of value arrays.
 - Each `aqf_analysis/<step>.py` has a `run()` that writes to `Data Analysis/results/<NN_step>/` (`paths.outputs`).
   `aqf_analysis/cli.py` wires them up.
 

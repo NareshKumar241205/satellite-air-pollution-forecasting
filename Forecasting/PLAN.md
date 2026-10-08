@@ -21,9 +21,9 @@ The rules follow from `Data Analysis/REPORT.md`:
 |---|---|---|
 | **F0 Forecastability** | anomaly autocorrelation for leads 1–30 (pooled pixels and area mean); cross-gas lead–lag partial correlation; neighbour (3×3) predictive correlation; Sentinel-2 NDBI vs long-term NO2 per S5P pixel with a spatial-block permutation test | done, see REPORT.md |
 | **F1 Baselines** | climatology, persistence, damped anomaly persistence; task A and task B; RMSE, MAE, skill vs climatology, anomaly correlation; residual-quantile 10/90 % intervals with coverage and CRPS per lead; block-bootstrap CIs | done, see REPORT.md |
-| F2 Learned models | per-gas LightGBM pooled over pixels plus a Ridge reference. Inputs are anomaly lags, the 3×3 neighbourhood, other gases, season, static S2 per pixel and validity masks. For task B, the lead is a feature (direct multi-horizon). Quantile versions give the 10/90 % bands | next |
-| F3 ConvLSTM | small spatio-temporal network, **only if** F0/F2 show spatial/temporal structure that the tree models miss | conditional |
-| F4 Ablations | S2 off / S2 shuffled; own gas vs multi-gas; no neighbours; no validity masks; exclude 2020 Q2 (lockdown) | |
+| F2 Learned models | per-gas LightGBM pooled over pixels plus a Ridge reference. Inputs are anomaly lags, the 3×3 neighbourhood, other gases, season, static S2 per pixel and validity masks. For task B, the lead is a feature (direct multi-horizon). Quantile versions give the 10/90 % bands | done, see REPORT.md |
+| F3 ConvLSTM | small spatio-temporal network, **only if** F0/F2 show spatial/temporal structure that the tree models miss | not justified (F2), skipped |
+| F4 Ablations | S2 off / S2 shuffled; own gas vs multi-gas; no neighbours; no validity masks; exclude 2020 Q2 (lockdown, already done in F2) | next |
 | F5 Test | single scoring of the 2024 test year with frozen configs, then refit on 2019–2024 and produce the Jan–May 2025 outlook | |
 
 ## Deliverables (F5)
