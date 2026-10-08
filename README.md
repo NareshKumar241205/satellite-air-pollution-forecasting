@@ -5,6 +5,41 @@ Sentinel-2 surface reflectance (100 m) is land-surface context. Raw data lives i
 
 Current status, key results and next steps: [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
 
+## Results at a glance
+
+**Data analysis** ([`Data Analysis/REPORT.md`](<Data Analysis/REPORT.md>)):
+- Exact zeros in the S5P maps are missing retrievals, not clean air.
+- No gas has a significant 2019–2024 trend.
+- NO2 fell 35.5 % during the 2020 lockdown.
+- The NO2 hotspot is on the Manali–Ambattur axis, and SO2 peaks toward Ennore.
+
+**Forecasting** ([`Forecasting/REPORT.md`](Forecasting/REPORT.md)): 5-day and 150-day forecasts of the 12×12 maps.
+The models were chosen with rolling-origin validation over 2021–2023 and scored **once** on the held-out year 2024:
+
+| Gas | 5 days | 10–30 days | 35–150 days | 80 % interval coverage (2024) |
+|---|---|---|---|---|
+| NO2 | damped persistence +3.1 % [−0.4, 6.1] | Ridge −0.5 % | seasonal climatology | 0.82 |
+| CO | damped persistence +3.8 % [−7.6, 10.1] | climatology | climatology | 0.85–0.87 |
+| SO2 | climatology | climatology | climatology | 0.81 |
+
+The numbers are MSE skill against the seasonal climatology, with 95 % CIs in brackets. Beyond the seasonal cycle, predictability is small and
+year-dependent, so the dependable long-range forecast is the seasonal climatology with calibrated bands. The **Jan–May 2025
+outlook** (GeoTIFF per gas, CSVs, figures) is in [`Forecasting/results/F5_final/outlook_2025/`](Forecasting/results/F5_final/outlook_2025/).
+
+## Data (not included in this repository)
+
+The raw dataset (1.9 GB) is not in git. Place it at `Dataset/data/` with this layout (described in
+[`docs/dataset.md`](docs/dataset.md)):
+
+```
+Dataset/data/
+  dataset_manifest.csv          438 five-day windows, 2019-01-01 .. 2024-12-25
+  s5p_composites/s5p_YYYYMMDD.tif   Sentinel-5P, 3 bands (NO2, CO, SO2; mol/m^2), 13x13 at ~5 km, EPSG:4326
+  s2_composites/s2_YYYYMMDD.tif     Sentinel-2, 12 bands (B2-B12, NDVI, NDBI, NDMI), 558x558 at 100 m (290 files)
+```
+
+Without the data, `uv run pytest` still runs the unit tests and skips the tests that need it.
+
 The project is a uv workspace. The shared core package `aqf` (`src/aqf/`) holds the config, data loading and
 data-quality rules. Each phase lives in its own folder with its own code, tests, results and report.
 

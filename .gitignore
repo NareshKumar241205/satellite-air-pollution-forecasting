@@ -5,11 +5,20 @@ __pycache__/
 
 # Raw data, derived data and outputs are large or rebuildable: never commit them
 Dataset/
+.ipynb_checkpoints/
 data/
 outputs/
 # Generated analysis results (rebuild with `uv run aqf-analysis all`)
 Data Analysis/results/
-Forecasting/results/
+Forecasting/results/*
+# ...except the final deliverables (small): the 2024 test summary and the Jan-May 2025 outlook
+!Forecasting/results/F5_final/
+Forecasting/results/F5_final/*
+!Forecasting/results/F5_final/TEST_SCORED.json
+!Forecasting/results/F5_final/test_summary.csv
+!Forecasting/results/F5_final/test_metrics_by_lead.csv
+!Forecasting/results/F5_final/fig_test_2024_by_lead.png
+!Forecasting/results/F5_final/outlook_2025/
 
 # Executed notebook copies and PNGs from tools/view_tiff.ipynb
 tools/outputs/

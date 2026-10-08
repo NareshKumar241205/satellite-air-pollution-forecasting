@@ -1,0 +1,51 @@
+{
+  "scored_at": "2026-10-08T19:40:09",
+  "test_year": 2024,
+  "frozen": {
+    "NO2": [
+      [
+        1,
+        1,
+        "damped"
+      ],
+      [
+        2,
+        6,
+        "ridgeB"
+      ],
+      [
+        7,
+        30,
+        "climatology"
+      ]
+    ],
+    "CO": [
+      [
+        1,
+        1,
+        "damped"
+      ],
+      [
+        2,
+        30,
+        "climatology"
+      ]
+    ],
+    "SO2": [
+      [
+        1,
+        30,
+        "climatology"
+      ]
+    ]
+  },
+  "alternatives": {
+    "NO2": [
+      "ridgeA",
+      "ridgeB"
+    ],
+    "CO": [
+      "lgbmA"
+    ]
+  }
+}
