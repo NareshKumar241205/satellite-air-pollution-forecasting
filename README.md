@@ -55,7 +55,8 @@ Open [`tools/view_tiff.ipynb`](tools/view_tiff.ipynb) in VS Code or Jupyter and 
 uv run python -m ipykernel install --user --name aqf-scratch --display-name "Python (Scratch .venv)"
 ```
 
-(It's needed because the Code - OSS Python extension here can't auto-detect environments: its `pet` tool is missing.)
+If the kernel list is empty in Code - OSS, see [`tools/README.md`](tools/README.md) (proposed-API fix + a JupyterLab fallback:
+`uv run --with jupyterlab jupyter lab tools/view_tiff.ipynb`).
 Set `IMAGE_PATH` in the settings cell (relative to `Scratch/`), then *Run All*. The other settings are `BANDS`, `RGB`
 (Sentinel-2 true colour), `VMIN`/`VMAX` and `SAVE_TO`. The last cell lists every `.tif` in the project.
 

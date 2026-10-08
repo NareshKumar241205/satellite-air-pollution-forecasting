@@ -10,3 +10,6 @@ outputs/
 # Generated analysis results (rebuild with `uv run aqf-analysis all`)
 Data Analysis/results/
 Forecasting/results/
+
+# Executed notebook copies and PNGs from tools/view_tiff.ipynb
+tools/outputs/
