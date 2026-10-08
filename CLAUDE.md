@@ -54,7 +54,7 @@ uv run aqf-forecast <forecastability|baselines|learned|ablations|all>   # F2 abo
 
 ## Rules
 
-- 2024 (test) is scored once, in F5, with frozen configs. Everything before that is evaluated on 2023 only.
+- 2024 (test) is scored once, in F5, with frozen configs. Before that, models are evaluated on 2023 and, in F4, rolling-origin on 2021–2023 (each year trained only on the years before it).
 - `Dataset/` is raw and immutable. `data/`, `Data Analysis/results/` and `Forecasting/results/` are derived and gitignored. Never commit them.
 - Split by year: train 2019–2022, val 2023, test 2024. Anything fitted (scalers, climatology, S2 composites) uses train
   years only. Descriptive analysis may use all years.
