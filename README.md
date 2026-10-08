@@ -48,13 +48,13 @@ uv run aqf-forecast outlook          # F5 outlook only
 
 ## Viewing any GeoTIFF
 
-```bash
-uv run python tools/view_tiff.py Dataset/data/s5p_composites/s5p_20200301.tif          # all bands + metadata
-uv run python tools/view_tiff.py Dataset/data/s2_composites/s2_20200301.tif --rgb      # Sentinel-2 true colour
-uv run python tools/view_tiff.py Forecasting/results/F5_final/outlook_2025/outlook_NO2_2025.tif --bands 1 6 12 18 24 30
-```
+Open [`tools/view_tiff.ipynb`](tools/view_tiff.ipynb) in VS Code or Jupyter and choose the **Scratch `.venv`** kernel.
+Set `IMAGE_PATH` in the settings cell (relative to `Scratch/`), then *Run All*. The other settings are `BANDS`, `RGB`
+(Sentinel-2 true colour), `VMIN`/`VMAX` and `SAVE_TO`. The last cell lists every `.tif` in the project.
 
-Add `--info` for metadata only, or `--out fig.png` to save instead of opening a window.
+```bash
+uv run jupyter lab tools/view_tiff.ipynb      # only if you don't use VS Code; needs `uv add --dev jupyterlab`
+```
 
 ## Layout
 
@@ -71,6 +71,7 @@ Data Analysis/
   src/aqf_analysis/                    cli, stats (Mann-Kendall, Sen, FDR), plotting, one module per step
   tests/                               analysis tests
   results/                             generated figures and tables (gitignored)
+tools/view_tiff.ipynb                  notebook to view any GeoTIFF (set IMAGE_PATH)
 Forecasting/
   PLAN.md, REPORT.md                   phases F0-F5 and findings
   src/aqf_forecast/                    problem, baselines, features, learned (F2), ablations (F4), final (F5 test + outlook), metrics, forecastability, evaluate

@@ -22,6 +22,8 @@ uv run aqf-forecast <forecastability|baselines|learned|ablations|all>   # F2 abo
 uv run aqf-forecast outlook                    # refit on 2019-2024, write the 2025 outlook (the frozen choice is `final:` in configs/forecast.yaml)
 ```
 
+`tools/view_tiff.ipynb` is the user's GeoTIFF viewer (settings cell at the top). It is committed without outputs, so keep it that way.
+
 ## Architecture
 
 - **uv workspace.** The root package `aqf` (`src/aqf/`) is the shared core that every phase reuses. Each phase is a
