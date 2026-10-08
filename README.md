@@ -48,7 +48,14 @@ uv run aqf-forecast outlook          # F5 outlook only
 
 ## Viewing any GeoTIFF
 
-Open [`tools/view_tiff.ipynb`](tools/view_tiff.ipynb) in VS Code or Jupyter and choose the **Scratch `.venv`** kernel.
+Open [`tools/view_tiff.ipynb`](tools/view_tiff.ipynb) in VS Code or Jupyter and choose the kernel **Python (Scratch .venv)**
+(*Select Kernel → Jupyter Kernel… → Python (Scratch .venv)*). That kernel is registered once per machine with:
+
+```bash
+uv run python -m ipykernel install --user --name aqf-scratch --display-name "Python (Scratch .venv)"
+```
+
+(It's needed because the Code - OSS Python extension here can't auto-detect environments: its `pet` tool is missing.)
 Set `IMAGE_PATH` in the settings cell (relative to `Scratch/`), then *Run All*. The other settings are `BANDS`, `RGB`
 (Sentinel-2 true colour), `VMIN`/`VMAX` and `SAVE_TO`. The last cell lists every `.tif` in the project.
 

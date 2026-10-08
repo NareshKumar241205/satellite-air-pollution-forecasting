@@ -1,0 +1,6 @@
+{
+  // Use the project's uv environment for Python files and notebooks
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  // Run notebooks from the project root so relative paths like "Dataset/..." resolve
+  "jupyter.notebookFileRoot": "${workspaceFolder}"
+}
