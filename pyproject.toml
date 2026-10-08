@@ -17,16 +17,18 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "aqf-analysis",
+    "aqf-forecast",
     "pytest>=9.1.1",
 ]
 
 # Each project phase is a workspace member in its own folder, built on this core package.
 [tool.uv.workspace]
-members = ["Data Analysis"]
+members = ["Data Analysis", "Forecasting"]
 
 [tool.uv.sources]
 aqf-analysis = { workspace = true }
+aqf-forecast = { workspace = true }
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "Data Analysis/tests"]
+testpaths = ["tests", "Data Analysis/tests", "Forecasting/tests"]
 addopts = "-p no:cacheprovider"   # no .pytest_cache folder

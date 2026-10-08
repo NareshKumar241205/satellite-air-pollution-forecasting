@@ -14,6 +14,7 @@ resolution-markers = [
 members = [
     "aqf",
     "aqf-analysis",
+    "aqf-forecast",
 ]
 
 [[package]]
@@ -42,6 +43,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "aqf-analysis" },
+    { name = "aqf-forecast" },
     { name = "pytest" },
 ]
 
@@ -56,6 +58,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "aqf-analysis", editable = "Data Analysis" },
+    { name = "aqf-forecast", editable = "Forecasting" },
     { name = "pytest", specifier = ">=9.1.1" },
 ]
 
@@ -76,6 +79,23 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.11.2" },
     { name = "scipy", specifier = ">=1.18.1" },
     { name = "statsmodels", specifier = ">=0.15.0" },
+]
+
+[[package]]
+name = "aqf-forecast"
+version = "0.1.0"
+source = { editable = "Forecasting" }
+dependencies = [
+    { name = "aqf" },
+    { name = "matplotlib" },
+    { name = "scipy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aqf", editable = "." },
+    { name = "matplotlib", specifier = ">=3.11.2" },
+    { name = "scipy", specifier = ">=1.18.1" },
 ]
 
 [[package]]

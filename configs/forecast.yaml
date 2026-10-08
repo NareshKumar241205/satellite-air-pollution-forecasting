@@ -1,0 +1,27 @@
+# Forecasting configuration (Forecasting/PLAN.md). Data rules come from configs/data.yaml.
+outputs: Forecasting/results          # one sub-folder per phase
+seed: 0
+
+horizon: 30                           # task B: 30 windows x 5 days = 150 days
+short_lead: 1                         # task A: next 5-day window
+
+climatology:
+  harmonics: 3
+  ridge: 1.0e-3
+  min_obs: 20
+
+persistence:
+  max_lookback: 3                     # use the last valid value from up to 3 windows back, else climatology
+
+intervals:
+  quantiles: [0.1, 0.9]               # 80 % central interval
+  crps_samples: 400                   # residual samples per (gas, lead) for the empirical CRPS
+
+bootstrap:
+  block: 6                            # consecutive origins per block (30 days), for serial dependence
+  n: 1000
+
+forecastability:
+  max_lag: 30
+  permutation_n: 2000
+  permutation_block: 3                # 3x3-pixel spatial blocks for the NDBI-NO2 permutation test

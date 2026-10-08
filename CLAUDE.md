@@ -5,17 +5,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 A final-year project on satellite air-pollution forecasting over Chennai. It was rebuilt from scratch on 2026-10-08,
-and the earlier code isn't part of this repo. Phase 1 (data analysis) is done. The findings and the design
-implications for forecasting are in `Data Analysis/REPORT.md`. Read that file before modelling work.
+and the earlier code isn't part of this repo. Phase 1 (data analysis) is done (`Data Analysis/REPORT.md`). Phase 2 (forecasting) follows `Forecasting/PLAN.md`:
+F0 and F1 are done (`Forecasting/REPORT.md`) and F2 (LightGBM/Ridge) is next. Read both reports before modelling work.
 
 ## Commands
 
 ```bash
 uv sync                                        # installs the core `aqf` + workspace members (Data Analysis)
-uv run pytest -q                               # 8 tests, about 2 s; tests/test_data.py skips if Dataset/ is absent
+uv run pytest -q                               # 14 tests, about 5 s; tests/test_data.py skips if Dataset/ is absent
 uv run pytest "Data Analysis/tests/test_stats.py::test_fdr_bh_matches_hand_computation" -q
 uv run aqf-analysis all --no-hash              # every analysis step, about 1 min
 uv run aqf-analysis <inventory|cube|quality|trends|spatial|s2>
+uv run aqf-forecast <forecastability|baselines|all>   # Forecasting F0/F1, about 40 s
 ```
 
 ## Architecture
@@ -32,6 +33,11 @@ uv run aqf-analysis <inventory|cube|quality|trends|spatial|s2>
 - `aqf/series.py` is the single place where data-quality rules apply. `clean_values` turns zeros into NaN,
   `window_table` flags usable windows (≥ `min_coverage` valid pixels), and `analysis_values` gives the cleaned and masked
   cube that every pixel-level analysis must use. Don't read `cube.values` directly in an analysis.
+- **Forecasting** (`Forecasting/src/aqf_forecast/`): `problem.py` loads the cleaned cube and splits. `fit()` fits the
+  climatology (`aqf/anomaly.py`) and the damped-persistence coefficients on a window mask. Every model returns
+  predicted values of shape (T origins, H leads, G, 13, 13) for all origins at once. A pair's split is that of its
+  *target* window (`target_obs`, `_target_split`). Intervals and CRPS come from leave-one-train-year-out residuals.
+  `tests/test_forecast.py::test_no_lookahead_in_baselines` guards against future leakage, so extend it for every new model.
 - Each `aqf_analysis/<step>.py` has a `run()` that writes to `Data Analysis/results/<NN_step>/` (`paths.outputs`).
   `aqf_analysis/cli.py` wires them up.
 
@@ -45,6 +51,7 @@ uv run aqf-analysis <inventory|cube|quality|trends|spatial|s2>
 
 ## Rules
 
-- `Dataset/` is raw and immutable. `data/` and `Data Analysis/results/` are derived and gitignored. Never commit them.
+- 2024 (test) is scored once, in F5, with frozen configs. Everything before that is evaluated on 2023 only.
+- `Dataset/` is raw and immutable. `data/`, `Data Analysis/results/` and `Forecasting/results/` are derived and gitignored. Never commit them.
 - Split by year: train 2019–2022, val 2023, test 2024. Anything fitted (scalers, climatology, S2 composites) uses train
   years only. Descriptive analysis may use all years.

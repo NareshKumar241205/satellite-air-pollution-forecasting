@@ -28,16 +28,35 @@ uv run aqf-analysis s2           # 05 Sentinel-2 coverage and spectral indices (
 The findings are in [`Data Analysis/REPORT.md`](<Data Analysis/REPORT.md>). Figures and tables go to
 `Data Analysis/results/<NN_step>/`.
 
+## Phase 2: Forecasting (`Forecasting/`)
+
+Task A forecasts the next 5-day map. Task B is a 150-day (30-window) outlook. Both are for NO2, CO and SO2 on the 12×12 grid.
+The plan is [`Forecasting/PLAN.md`](Forecasting/PLAN.md) and the findings so far are in [`Forecasting/REPORT.md`](Forecasting/REPORT.md).
+
+```bash
+uv run aqf-forecast all              # F0 + F1, about 40 s
+uv run aqf-forecast forecastability  # F0 autocorrelation, cross-gas, neighbours, S2 vs long-term mean
+uv run aqf-forecast baselines        # F1 climatology / persistence / damped persistence, tasks A and B, validation 2023
+```
+
 ## Layout
 
 ```
+configs/forecast.yaml                  horizon, lookback, quantiles, bootstrap, forecastability settings
 configs/data.yaml                      paths, gases, display units, seasons, splits, quality rules, hub coordinates
 src/aqf/data.py                        core: config, manifest, raster reading, S5P cube
 src/aqf/series.py                      core: zero handling, per-window quality table, area-mean and monthly series
+src/aqf/anomaly.py                     core: per-pixel harmonic climatology (fit on train only)
+src/aqf/s2_static.py                   core: static S2 features aggregated to the S5P grid (train years)
 tests/                                 core tests
 Data Analysis/
   REPORT.md                            written findings of phase 1
   src/aqf_analysis/                    cli, stats (Mann-Kendall, Sen, FDR), plotting, one module per step
   tests/                               analysis tests
+  results/                             generated figures and tables (gitignored)
+Forecasting/
+  PLAN.md, REPORT.md                   phases F0-F5 and findings
+  src/aqf_forecast/                    problem (splits, fit, pairs), baselines, metrics, forecastability, evaluate
+  tests/                               climatology, no-lookahead, metric and alignment tests
   results/                             generated figures and tables (gitignored)
 ```
