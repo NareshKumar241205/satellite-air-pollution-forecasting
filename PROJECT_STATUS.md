@@ -6,9 +6,10 @@ numbers were checked against the reports.
 
 | Check | Result |
 |---|---|
-| `uv run pytest -q` | **18 passed** (~2 s) |
+| `uv run pytest -q` | **21 passed** (~2 s) |
 | `uv run aqf-analysis all` | completed, 53 s, 18 figures + tables |
 | `uv run aqf-forecast all` | completed: F0 + F1 about 30 s, F2 about 3 min, F4 about 30 s |
+| `uv run aqf-forecast final` | 2024 scored **once** + Jan–May 2025 outlook, about 1 min |
 | Git | `main`, local, working tree clean before this file |
 
 ## 1. What has been done
@@ -28,7 +29,7 @@ numbers were checked against the reports.
 - Trends: STL decomposition, seasonal Mann–Kendall / Sen slope, per-pixel trend maps with FDR correction.
 - COVID lockdown effect, spatial hotspots, industrial hubs, and a Sentinel-2 summary.
 
-**Phase 2: Forecasting** (F0, F1, F2, F4 done, F3 skipped, [`Forecasting/PLAN.md`](Forecasting/PLAN.md), [`Forecasting/REPORT.md`](Forecasting/REPORT.md))
+**Phase 2: Forecasting** (complete: F0–F2, F4, F5 done, F3 skipped, [`Forecasting/PLAN.md`](Forecasting/PLAN.md), [`Forecasting/REPORT.md`](Forecasting/REPORT.md))
 - Two tasks:
   - **A**: the next 5-day map.
   - **B**: the **150-day outlook** (30 leads).
@@ -36,7 +37,7 @@ numbers were checked against the reports.
 - F1 baselines: climatology, persistence and damped anomaly persistence. Metrics are skill, CRPS, interval coverage and block-bootstrap CIs.
 - F2 learned models: LightGBM and Ridge per gas, pooled over pixels. Task A is a lead-1 model and task B a multi-horizon model with the lead as a feature. 27 features, including 30/60/90-day trailing anomalies. A no-leakage test covers the features, and there's a 2020 Q2 (lockdown) robustness check.
 - F4: ablations (S2, neighbours, flags, trailing means, other gases, 2020 Q2), a **rolling-origin check over 2021, 2022 and 2023**, and an NE-monsoon gate. **The model choice was revised as a result.**
-- Fitted on train 2019–2022 and scored on validation 2023. **The 2024 test year is untouched.**
+- F5: the frozen choice was scored **once on 2024** (fitted on 2019–2023), then everything was refitted on 2019–2024 for the **Jan–May 2025 outlook**: GeoTIFFs, CSVs, fan charts and hotspot series.
 
 ## 2. Key results
 
@@ -95,17 +96,36 @@ Skill means MSE skill against the per-pixel seasonal climatology. Positive means
 - **Beyond about a month, the honest 150-day outlook is the seasonal climatology with calibrated 80 % bands** (coverage 0.76–0.83).
 - Sentinel-2: mean NDVI vs long-term NO2 gives ρ = −0.53 (block-permutation p = 0.026). It explains *where* NO2 is high, not *when*.
 
-## 3. Not done yet
+### Final test: 2024, scored once with the frozen choice
 
-| Phase | Content |
-|---|---|
-| **F5** (waiting for go-ahead) | Score 2024 **once** with the frozen revised choice above, plus the secondary candidates. Then refit on 2019–2024 and produce the **Jan–May 2025 outlook**: a 30-band GeoTIFF per gas (mean, 10 %, 90 %), a 30-row CSV, fan charts, and hotspot series for Manali NO2 and Ennore SO2, plus the next-5-day map |
+| Gas | 5 d | 10–30 d | 35–150 d | 80 % coverage |
+|---|---|---|---|---|
+| NO2 | damped +3.1 % [−0.4, 6.1] | Ridge −0.5 % [−3.0, 3.0] | climatology (0) | 0.82 |
+| CO | damped +3.8 % [−7.6, 10.1] | climatology (0) | climatology (0) | 0.85–0.87 |
+| SO2 | climatology (0) | climatology (0) | climatology (0) | 0.81 |
+
+- **2024 confirms the F4 revision and contradicts the 2023-only results.** The dropped NO2 Ridge long-range model is
+  significantly worse than climatology in 2024 (−4.7 % [−7.3, −2.6]). The CO LightGBM 5-day model gives −1.4 %.
+- The short-range gains are small: +3 to +4 %, with CIs touching 0. The intervals are calibrated.
+- **Conclusion: beyond the seasonal cycle, predictability is small and year-dependent. The dependable 150-day forecast
+  is the seasonal climatology with calibrated bands, plus a short-range correction.**
+
+### Jan–May 2025 outlook (`Forecasting/results/F5_final/outlook_2025/`)
+- 30 steps from 30 Dec 2024 to 29 May 2025, per gas: a 90-band GeoTIFF (mean, p10, p90; the model is named on every band),
+  an area-mean CSV with 80 % bands, hotspot series (Manali NO2, Ennore SO2), fan charts and maps.
+- Area-mean NO2 goes 35.5 µmol/m² (30 Dec) → about 40 (late Jan) → about 32 (late Mar low) → about 41 (late May), with 80 % bands of ±12–13.
+
+## 3. Not done yet
+- Nothing from the plan remains. Possible extensions:
+  - add meteorology (wind, boundary-layer height, rain), the most likely source of extra skill
+  - re-score when 2025 data arrive
+  - write up the final report and slides
 
 ## 4. Risks and limitations
 - **Six years is short.** Trend tests have low power, and only one validation year and one test year exist.
 - **SO2 is noisy.** 39 % of its pixels are zeros, 21 % of its windows are unusable, and nothing beats climatology. Its outlook will be climatology only.
 - **2023 (validation) was the highest-NO2 year** and flattered the learned models. The rolling-origin check exposed this, and the choice was revised.
-- **Model selection used 2021–2023**, so the single 2024 score is the only unbiased estimate.
+- **Model selection used 2021–2023**, so the single 2024 score is the only unbiased estimate. It agrees with the revised choice.
 - **NO2 is weak in the NE monsoon (Oct–Dec)**, and a simple gate didn't fix it.
 - **Validation numbers drive model choice** and are therefore optimistic. Only the single 2024 score is unbiased.
 - **The old pipeline exists only in the system trash.** Don't empty the trash if any of it might still be needed.
@@ -117,4 +137,5 @@ uv sync
 uv run pytest -q
 uv run aqf-analysis all      # phase 1, about 1 min, results in "Data Analysis/results/"
 uv run aqf-forecast all      # phase 2 F0 + F1 + F2 + F4, about 4 min, results in Forecasting/results/
+uv run aqf-forecast outlook  # refit on 2019-2024 and write the Jan-May 2025 outlook (the 2024 test is locked)
 ```

@@ -6,18 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A final-year project on satellite air-pollution forecasting over Chennai. It was rebuilt from scratch on 2026-10-08,
 and the earlier code isn't part of this repo. Phase 1 (data analysis) is done (`Data Analysis/REPORT.md`). Phase 2 (forecasting) follows `Forecasting/PLAN.md`:
-F0, F1, F2 and F4 are done (`Forecasting/REPORT.md`), and F3 (ConvLSTM) was skipped. F4's rolling-origin check revised
-the model choice (see the REPORT table). F5 (the single 2024 test plus the Jan–May 2025 outlook) waits for the user's go-ahead. Read both reports before modelling work. `PROJECT_STATUS.md` summarises the status and headline numbers, so update it after each phase.
+The forecasting plan is complete (F3 ConvLSTM skipped). F4's rolling-origin check revised the model choice, and F5 scored 2024
+once, which confirmed the revision, and produced the Jan–May 2025 outlook. **2024 has been scored: never re-tune on it.**
+`results/F5_final/TEST_SCORED.json` locks it, and `--rescore-test` exists only to reproduce identical numbers. Read both reports before modelling work. `PROJECT_STATUS.md` summarises the status and headline numbers, so update it after each phase.
 
 ## Commands
 
 ```bash
 uv sync                                        # installs the core `aqf` + workspace members (Data Analysis)
-uv run pytest -q                               # 18 tests, about 2 s; tests/test_data.py skips if Dataset/ is absent
+uv run pytest -q                               # 21 tests, about 2 s; tests/test_data.py skips if Dataset/ is absent
 uv run pytest "Data Analysis/tests/test_stats.py::test_fdr_bh_matches_hand_computation" -q
 uv run aqf-analysis all --no-hash              # every analysis step, about 1 min
 uv run aqf-analysis <inventory|cube|quality|trends|spatial|s2>
 uv run aqf-forecast <forecastability|baselines|learned|ablations|all>   # F2 about 3 min; F4 needs F2's training_info.csv
+uv run aqf-forecast outlook                    # refit on 2019-2024, write the 2025 outlook (the frozen choice is `final:` in configs/forecast.yaml)
 ```
 
 ## Architecture
@@ -54,7 +56,7 @@ uv run aqf-forecast <forecastability|baselines|learned|ablations|all>   # F2 abo
 
 ## Rules
 
-- 2024 (test) is scored once, in F5, with frozen configs. Before that, models are evaluated on 2023 and, in F4, rolling-origin on 2021–2023 (each year trained only on the years before it).
+- 2024 (test) has been scored once, in F5, with frozen configs. Any new model must be selected on 2021–2023 rolling origin, not on 2024.
 - `Dataset/` is raw and immutable. `data/`, `Data Analysis/results/` and `Forecasting/results/` are derived and gitignored. Never commit them.
 - Split by year: train 2019–2022, val 2023, test 2024. Anything fitted (scalers, climatology, S2 composites) uses train
   years only. Descriptive analysis may use all years.

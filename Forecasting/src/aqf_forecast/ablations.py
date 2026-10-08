@@ -56,9 +56,12 @@ def _frozen(p: Problem) -> pd.DataFrame:
 
 
 def fit_predict(p: Problem, gas: str, task: str, kind: str, hp: dict, train_mask: np.ndarray, eval_mask: np.ndarray,
-                opts: dict | None = None, seed: int = 0) -> np.ndarray:
+                opts: dict | None = None, seed: int = 0, eval_origins: np.ndarray | None = None) -> np.ndarray:
     """Fit one chosen model on targets in train_mask (climatology and scales fitted on those windows too) and
-    return predicted values (T, H, G, Hp, Wp) for every pair whose target lies in eval_mask (NaN elsewhere)."""
+    return predicted values (T, H, G, Hp, Wp) for every pair whose target lies in eval_mask (NaN elsewhere).
+
+    eval_origins: predict all leads from these origins instead, including targets beyond the record (the outlook).
+    """
     opts = opts or {}
     fc = p.fcfg
     cfg2 = fc["f2"]
@@ -75,7 +78,11 @@ def fit_predict(p: Problem, gas: str, task: str, kind: str, hp: dict, train_mask
     keep = np.array([not any(n.startswith(d) for d in opts.get("drop", [])) for n in fs.names])
     exclude = tuple(cfg2["exclude_2020q2"]) if opts.get("exclude_q2") else None
     o_tr, l_tr = pairs(p, leads, train_mask, cfg2["min_origin"], exclude)
-    o_ev, l_ev = pairs(p, leads, eval_mask, cfg2["min_origin"])
+    if eval_origins is None:
+        o_ev, l_ev = pairs(p, leads, eval_mask, cfg2["min_origin"])
+    else:
+        o_ev = np.repeat(eval_origins, len(leads))
+        l_ev = np.tile(np.array(leads), len(eval_origins))
     X, y, _ = rows_for(fs, o_tr, l_tr)
     Xe, _, pr_ev = rows_for(fs, o_ev, l_ev)
     ok = np.isfinite(y)

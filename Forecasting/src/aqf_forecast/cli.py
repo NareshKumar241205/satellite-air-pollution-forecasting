@@ -13,7 +13,11 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("baselines", help="F1: climatology / persistence / damped persistence, tasks A and B on validation")
     sub.add_parser("learned", help="F2: LightGBM + Ridge for tasks A and B, compared with the baselines on validation")
     sub.add_parser("ablations", help="F4: ablations, rolling-origin years 2021-2023, NE-monsoon gate (needs F2 first)")
-    sub.add_parser("all", help="F0, F1, F2 and F4")
+    q = sub.add_parser("final", help="F5: score the 2024 test ONCE with the frozen choice, then the Jan-May 2025 outlook")
+    q.add_argument("--rescore-test", action="store_true",
+                   help="re-run the 2024 scoring (only to reproduce the identical numbers; never to tune)")
+    sub.add_parser("outlook", help="F5 outlook only: refit on 2019-2024 and forecast Jan-May 2025")
+    sub.add_parser("all", help="F0, F1, F2 and F4 (F5 is run separately: `final`)")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s: %(message)s", datefmt="%H:%M:%S")
     logging.getLogger("rasterio").setLevel(logging.ERROR)   # harmless S2 TIFF header warning
@@ -37,3 +41,9 @@ def main(argv: list[str] | None = None) -> None:
         from aqf_forecast import ablations
 
         ablations.run(p)
+    if args.cmd in ("final", "outlook"):
+        from aqf_forecast import final
+
+        if args.cmd == "final":
+            final.test(p, rescore=args.rescore_test)
+        final.outlook(p)

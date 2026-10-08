@@ -130,3 +130,53 @@ def test_rolling_fit_predict_only_scores_the_held_out_year():
     target_years = years[1:]                              # lead 1: target of origin t is window t+1
     has_pred = np.isfinite(pred[:-1, 0, 0]).any(axis=(1, 2))
     assert has_pred.any() and np.all(target_years[has_pred] == 2022)
+
+
+def test_frozen_choice_covers_every_lead_once():
+    from aqf_forecast.final import lead_models
+    from aqf_forecast.problem import load_problem
+
+    try:
+        p = load_problem()
+    except FileNotFoundError:
+        pytest.skip("raw dataset not present")
+    for gas in p.gases:
+        m = lead_models(p, gas)
+        assert len(m) == p.fcfg["horizon"] and all(m)
+    assert lead_models(p, "NO2")[0] == "damped" and lead_models(p, "NO2")[29] == "climatology"
+
+
+def test_compose_takes_the_named_component_per_lead():
+    from aqf_forecast.final import compose, lead_models
+    from aqf_forecast.problem import load_problem
+
+    try:
+        p = load_problem()
+    except FileNotFoundError:
+        pytest.skip("raw dataset not present")
+    shape = (p.T, p.fcfg["horizon"], len(p.gases)) + p.values.shape[2:]
+    codes = {"climatology": 1.0, "damped": 2.0, "ridgeB": 3.0}
+    comps = {(gas, c): np.full(shape, v) for gas in p.gases for c, v in codes.items()}
+    out = compose(p, comps)
+    for g, gas in enumerate(p.gases):
+        assert [codes[c] for c in lead_models(p, gas)] == out[0, :, g, 0, 0].tolist()
+
+
+def test_outlook_geotiff_layout(tmp_path):
+    import rasterio
+
+    from aqf_forecast.final import _geotiff
+    from aqf_forecast.problem import load_problem
+
+    try:
+        p = load_problem()
+    except FileNotFoundError:
+        pytest.skip("raw dataset not present")
+    H = 3
+    tdates = p.target_dates(H)[p.T:]
+    f = np.ones((H, 13, 13))
+    _geotiff(p, tmp_path / "x.tif", "NO2", f, f * 0.5, f * 2, ["damped", "ridgeB", "climatology"], tdates)
+    with rasterio.open(tmp_path / "x.tif") as src:
+        assert src.count == 3 * H
+        assert src.tags(2)["model"] == "ridgeB" and src.tags(H + 1)["statistic"] == "p10"
+        assert np.isnan(src.read(1)[12]).all() and src.read(2 * H + 1)[0, 1] == 2

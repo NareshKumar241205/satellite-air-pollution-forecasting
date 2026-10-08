@@ -46,3 +46,19 @@ f2:
     early_stopping: 50                # on validation 2023 (so validation scores are optimistic; 2024 decides)
   ridge_alphas: [0.1, 1, 10, 100, 1000, 10000]
   exclude_2020q2: ["2020-04-01", "2020-06-30"]   # lockdown check on the long-persistence signal
+
+# F5 frozen choice (Forecasting/REPORT.md, F4 "Revised model choice"); do NOT change after seeing 2024.
+# Each entry: [first_lead, last_lead, component]. Components: climatology, damped, ridgeB (F2 task-B Ridge),
+# ridgeA (F2 task-A Ridge), lgbmA (F2 task-A LightGBM). Hyperparameters come from F2 training_info.csv.
+final:
+  frozen:
+    NO2: [[1, 1, damped], [2, 6, ridgeB], [7, 30, climatology]]
+    CO: [[1, 1, damped], [2, 30, climatology]]
+    SO2: [[1, 30, climatology]]
+  alternatives:                       # scored once on 2024 for the record; never used for the outlook
+    NO2: [ridgeA, ridgeB]
+    CO: [lgbmA]
+  test_year: 2024
+  hotspots:                           # outlook series at the pixel containing these hubs (configs/data.yaml)
+    - [NO2, Manali/CPCL]
+    - [SO2, Ennore TPS/Port]

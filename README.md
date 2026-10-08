@@ -32,7 +32,8 @@ The findings are in [`Data Analysis/REPORT.md`](<Data Analysis/REPORT.md>). Figu
 
 ## Phase 2: Forecasting (`Forecasting/`)
 
-Task A forecasts the next 5-day map. Task B is a 150-day (30-window) outlook. Both are for NO2, CO and SO2 on the 12×12 grid.
+Task A forecasts the next 5-day map. Task B is a 150-day (30-window) outlook. The **Jan–May 2025 outlook** (GeoTIFF/CSV/figures)
+is in `Forecasting/results/F5_final/outlook_2025/`. Both are for NO2, CO and SO2 on the 12×12 grid.
 The plan is [`Forecasting/PLAN.md`](Forecasting/PLAN.md) and the findings so far are in [`Forecasting/REPORT.md`](Forecasting/REPORT.md).
 
 ```bash
@@ -41,6 +42,8 @@ uv run aqf-forecast forecastability  # F0 autocorrelation, cross-gas, neighbours
 uv run aqf-forecast baselines        # F1 climatology / persistence / damped persistence, tasks A and B, validation 2023
 uv run aqf-forecast learned          # F2 LightGBM + Ridge vs baselines, about 3 min
 uv run aqf-forecast ablations        # F4 ablations, rolling-origin 2021-2023, NE-monsoon gate (after F2)
+uv run aqf-forecast final            # F5: score 2024 ONCE (locked afterwards) + Jan-May 2025 outlook
+uv run aqf-forecast outlook          # F5 outlook only
 ```
 
 ## Layout
@@ -60,7 +63,7 @@ Data Analysis/
   results/                             generated figures and tables (gitignored)
 Forecasting/
   PLAN.md, REPORT.md                   phases F0-F5 and findings
-  src/aqf_forecast/                    problem, baselines, features, learned (F2), ablations (F4), metrics, forecastability, evaluate
+  src/aqf_forecast/                    problem, baselines, features, learned (F2), ablations (F4), final (F5 test + outlook), metrics, forecastability, evaluate
   tests/                               climatology, no-lookahead, metric and alignment tests
   results/                             generated figures and tables (gitignored)
 ```

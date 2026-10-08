@@ -256,3 +256,69 @@ The gate replaces the model forecast with climatology for targets in Oct–Dec.
 - **Bottom line for the 150-day outlook.** Beyond about a month, the honest forecast is the seasonal climatology with calibrated
   bands. The satellite record has information about *where* and *in which season* pollution is high, but not about
   whether the next 2–5 months will be above or below normal.
+
+---
+
+# F5: The single 2024 test and the Jan–May 2025 outlook
+
+To reproduce, run `uv run aqf-forecast final` (about 1 min). Results are in `results/F5_final/`.
+
+**How the test was run**
+- The frozen choice from F4 was scored **once** on 2024.
+- Every component was fitted on 2019–2023 (climatology too) with the hyperparameters frozen in F2.
+- Nothing was changed after seeing these numbers. A lock file (`TEST_SCORED.json`) blocks a silent second scoring.
+- One re-run was made with `--rescore-test`, only to fix a table bug: lead-1-only models were listed at leads they don't
+  forecast. The numbers were identical (max difference 0.0).
+
+## 2024 test results (`test_summary.csv`, `fig_test_2024_by_lead.png`)
+
+Skill is against the 2019–2023 seasonal climatology. Brackets are 95 % block-bootstrap CIs.
+
+| Gas | Leads | Frozen model | 2024 skill | 80 % interval coverage | Alternatives (for the record) |
+|---|---|---|---|---|---|
+| NO2 | 5 d | damped persistence | +3.1 % [−0.4, +6.1] | 0.82 | Ridge (A) +3.9 % [−0.4, +9.1] |
+| NO2 | 10–30 d | Ridge (B) | −0.5 % [−3.0, +3.0] | 0.82 | damped +0.0 % |
+| NO2 | 35–150 d | climatology | 0 (reference) | 0.82 | **Ridge (B) −4.7 % [−7.3, −2.6]** |
+| CO | 5 d | damped persistence | +3.8 % [−7.6, +10.1] | 0.85 | LightGBM (A) −1.4 % [−24, +13] |
+| CO | 10–150 d | climatology | 0 (reference) | 0.87 | damped −1.2 % to +0.1 % |
+| SO2 | 5–150 d | climatology | 0 (reference) | 0.81 | damped −0.1 to −0.4 % |
+
+**What 2024 says, plainly:**
+- **2024 contradicts the 2023 validation results for the learned models, and confirms the F4 revision.**
+  - The NO2 Ridge long-range model, which scored +5.6 % on 2023, is **significantly worse than climatology in 2024 (−4.7 %)**.
+  - The CO LightGBM 5-day model, which scored +15.5 % on 2023, gives −1.4 %.
+  - Keeping them would have made the outlook worse.
+- **The short-range gains are small in 2024.**
+  - Damped persistence at 5 days gives +3.1 % (NO2) and +3.8 % (CO). Both are positive, but the CIs include 0.
+  - The NO2 Ridge at 10–30 days, the one learned component kept, has no skill in 2024 (−0.5 %).
+- **The intervals hold.** 80 % bands cover 81–87 % of 2024 observations, so they're calibrated to slightly conservative (CO).
+- **Overall:** across 5–150 days, the frozen choice performs the same as the seasonal climatology (NO2 +0.0 %, CO +0.1 %,
+  SO2 0). Predictability beyond the seasonal cycle is small and year-dependent. The **seasonal climatology with calibrated
+  uncertainty is the dependable forecast** for this record, and the main deliverable is that climatology plus a short-range
+  correction, with honest bands.
+
+## Jan–May 2025 outlook (`outlook_2025/`)
+
+Everything was refitted on 2019–2024, with the climatology recomputed on those six years. The forecast is issued from the
+25 Dec 2024 window for 30 steps, **30 Dec 2024 to 29 May 2025**. The model per lead is the frozen choice:
+- NO2: damped at 5 d, Ridge at 10–30 d, climatology beyond
+- CO: damped at 5 d, climatology beyond
+- SO2: climatology
+
+| Gas | 30 Dec–4 Jan | late Jan | late Mar (seasonal low) | late May | Unit |
+|---|---|---|---|---|---|
+| NO2, area mean | 35.5 [24.5, 48.0] (damped) | 40.5 [28.5, 53.0] (Ridge, +30 d) | 32.2 [20.0, 45.6] | 41.5 [29.1, 54.8] | µmol/m² |
+| CO, area mean | 41.0 [37.5, 45.0] (damped) | 39.9 [36.1, 44.5] | 43.5 [39.7, 48.1] (seasonal high) | 36.0 [32.3, 40.6] | mmol/m² |
+| SO2, area mean | 197.8 [124.3, 272.2] | 217.9 [144.8, 293.8] | 157.1 [83.4, 236.5] | 194.6 [119.9, 275.3] | µmol/m² |
+
+Values are the mean with the 80 % band in brackets.
+
+**Files**
+- `outlook_<GAS>_2025.tif`: 90 bands each. Bands 1–30 are the mean, 31–60 the 10 % quantile, 61–90 the 90 % quantile, in mol/m².
+  Each band's description and tags name the lead, the window and the **model used**.
+- `outlook_area_mean.csv`: one row per gas and lead, with the model column.
+- `outlook_hotspots.csv`: Manali/CPCL NO2 and Ennore SO2 hub pixels.
+- `fig_outlook_fan_area.png`, `fig_outlook_hotspots.png`, `fig_outlook_maps.png`, plus `README.md`.
+
+At Manali, NO2 is forecast to peak at about 84 µmol/m² in late January and fall to about 38 in early April.
+That is the hotspot's typical seasonal pattern, with an 80 % band of roughly ±20 µmol/m².
