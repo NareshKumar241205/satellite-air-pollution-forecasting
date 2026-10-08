@@ -168,13 +168,15 @@ def _example_maps(p, preds, obs, sel_split, out, split):
     t = int(cand[len(cand) // 2])
     for g, gas in enumerate(p.gases):
         fig, axes = plt.subplots(2, len(leads), figsize=(14, 6.4))
+        cmap = plt.get_cmap("YlOrRd").copy()
+        cmap.set_bad("#bdbdbd")                                  # missing pixels in grey
         fields = [obs[t, h - 1, g] for h in leads] + [preds["damped"][t, h - 1, g] for h in leads]
         vmin, vmax = np.nanpercentile(np.concatenate([x.ravel() for x in fields]), [2, 98])
         for k, h in enumerate(leads):
             for r, (name, src) in enumerate((("observed", obs), ("damped persistence", preds["damped"]))):
                 ax = axes[r, k]
                 im = ax.imshow(scaled(p.cfg, gas, np.where(p.cube.footprint, src[t, h - 1, g], np.nan))[:12, 1:],
-                               cmap="YlOrRd", vmin=scaled(p.cfg, gas, vmin), vmax=scaled(p.cfg, gas, vmax))
+                               cmap=cmap, vmin=scaled(p.cfg, gas, vmin), vmax=scaled(p.cfg, gas, vmax))
                 ax.set_title(f"{name}, +{5 * h} d ({(p.target_dates(30)[t + h]).date()})", fontsize=8)
                 ax.set_xticks([])
                 ax.set_yticks([])
