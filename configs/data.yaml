@@ -5,7 +5,7 @@ paths:
   s5p_dir: Dataset/data/s5p_composites
   s2_dir: Dataset/data/s2_composites
   processed: data/processed          # derived, rebuildable
-  outputs: "Data Analysis"         # analysis results: one sub-folder per step + REPORT.md
+  outputs: "Data Analysis/results" # generated analysis results, one sub-folder per step
 
 gases: [NO2, CO, SO2]                # S5P band order (bands 1..3), unit mol/m^2
 

@@ -14,9 +14,9 @@ import pandas as pd
 import rasterio
 
 from aqf.data import load_manifest, read_raster
-from aqf.plotting import save
+from aqf_analysis.plotting import save
 from aqf.series import season_of
-from aqf.stats import seasonal_trend
+from aqf_analysis.stats import seasonal_trend
 
 log = logging.getLogger(__name__)
 INDICES = ["NDVI", "NDBI", "NDMI"]

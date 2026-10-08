@@ -15,7 +15,7 @@ import pandas as pd
 import rasterio
 
 from aqf.data import load_manifest, sha256
-from aqf.plotting import save
+from aqf_analysis.plotting import save
 
 log = logging.getLogger(__name__)
 

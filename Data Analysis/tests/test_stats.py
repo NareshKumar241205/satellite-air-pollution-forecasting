@@ -1,6 +1,6 @@
 import numpy as np
 
-from aqf.stats import fdr_bh, seasonal_trend
+from aqf_analysis.stats import fdr_bh, seasonal_trend
 
 
 def _monthly(trend_per_year, n_years=6, noise=0.0, seed=0):

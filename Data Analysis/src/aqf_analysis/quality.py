@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from aqf.data import S5PCube
-from aqf.plotting import GAS_COLORS, gas_map, save, scaled, unit
+from aqf_analysis.plotting import GAS_COLORS, gas_map, save, scaled, unit
 from aqf.series import window_table
 
 log = logging.getLogger(__name__)

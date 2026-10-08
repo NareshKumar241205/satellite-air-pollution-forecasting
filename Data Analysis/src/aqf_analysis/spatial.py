@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from aqf.data import S5PCube, nearest_pixel
-from aqf.plotting import gas_map, save, scaled, unit
+from aqf_analysis.plotting import gas_map, save, scaled, unit
 from aqf.series import analysis_values, season_of
 
 log = logging.getLogger(__name__)

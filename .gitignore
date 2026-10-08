@@ -7,6 +7,5 @@ __pycache__/
 Dataset/
 data/
 outputs/
-# Generated analysis results (rebuild with `uv run aqf analysis`); only the written report is tracked
-Data Analysis/*
-!Data Analysis/REPORT.md
+# Generated analysis results (rebuild with `uv run aqf-analysis all`)
+Data Analysis/results/

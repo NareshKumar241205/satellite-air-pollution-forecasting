@@ -16,9 +16,9 @@ import pandas as pd
 from statsmodels.tsa.seasonal import STL
 
 from aqf.data import S5PCube
-from aqf.plotting import GAS_COLORS, gas_map, save, scaled, unit
+from aqf_analysis.plotting import GAS_COLORS, gas_map, save, scaled, unit
 from aqf.series import analysis_values, monthly, season_of, window_table
-from aqf.stats import fdr_bh, seasonal_trend
+from aqf_analysis.stats import fdr_bh, seasonal_trend
 
 log = logging.getLogger(__name__)
 MONTHS = [pd.Timestamp(2000, k, 1).strftime("%b") for k in range(1, 13)]

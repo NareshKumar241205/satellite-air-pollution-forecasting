@@ -1,7 +1,1 @@
-"""aqf: satellite air-pollution analysis and forecasting over Chennai (Sentinel-5P + Sentinel-2)."""
-
-
-def main() -> None:
-    from aqf.cli import main as _main
-
-    _main()
+"""aqf core: config, manifest and raster loading, the S5P cube and the data-quality rules shared by every phase."""
