@@ -75,45 +75,52 @@ def fit_lgbm(X, y, Xv, yv, rounds=None):
     return lgb.train(fc.LGB_PARAMS, dtr, rounds), rounds
 
 
-def cnn_try(d, a, years, rng):
-    """Small fully-convolutional net on site grids (anomaly lags 0-5 + missing flags + day of year). None if no torch."""
+def _cnn_grids(d):
+    out = []
+    for s in range(len(d.sites)):
+        m = d.meta[d.site_idx == s]
+        out.append((np.flatnonzero(d.site_idx == s), m.row.max() + 1, m.col.max() + 1))
+    return out
+
+
+def _cnn_tensors(torch, a, years, grids, span, need_target=True):
+    T = len(a)
+    xs, ys, ms, keys = [], [], [], []
+    for s, (idx, H, W) in enumerate(grids):
+        g = a[:, idx].reshape(T, H, W)
+        for t in range(6, T - 1):
+            if not (span[0] <= years[t + 1] <= span[1]):
+                continue
+            lags = g[t - 5:t + 1][::-1]
+            ch = np.concatenate([np.nan_to_num(lags), np.isnan(lags)], 0)
+            tgt = g[t + 1]
+            pad = ((0, 12 - H), (0, 12 - W))
+            xs.append(np.pad(ch, ((0, 0), *pad)))
+            ys.append(np.pad(np.nan_to_num(tgt), pad))
+            ms.append(np.pad(np.isfinite(tgt), pad))
+            keys.append((s, t))
+    return (torch.tensor(np.array(xs), dtype=torch.float32), torch.tensor(np.array(ys), dtype=torch.float32),
+            torch.tensor(np.array(ms)), keys)
+
+
+def cnn_fit(d, a, years, fit_span, val_span=None, epochs=None):
+    """Small fully-convolutional net on 12x12 site grids (anomaly lags 0-5 + missing flags).
+    Early stopping on val_span, or a fixed number of epochs for the final refit. None if PyTorch is missing."""
     try:
         import torch
         import torch.nn as nn
     except ImportError:
-        return None, "not run: PyTorch is not installed in this environment"
+        return None, "not run: PyTorch is not installed in this environment", None
     torch.manual_seed(0)
-    grids = []
-    for s in range(len(d.sites)):
-        m = d.meta[d.site_idx == s]
-        H, W = m.row.max() + 1, m.col.max() + 1
-        grids.append((np.flatnonzero(d.site_idx == s), H, W))
-    T = len(a)
-
-    def tensors(span):
-        xs, ys, ms, keys = [], [], [], []
-        for s, (idx, H, W) in enumerate(grids):
-            g = a[:, idx].reshape(T, H, W)
-            for t in range(6, T - 1):
-                if not (span[0] <= years[t + 1] <= span[1]):
-                    continue
-                lags = g[t - 5:t + 1][::-1]
-                ch = np.concatenate([np.nan_to_num(lags), np.isnan(lags)], 0)
-                tgt = g[t + 1]
-                xs.append(np.pad(ch, ((0, 0), (0, 12 - H), (0, 12 - W))))
-                ys.append(np.pad(np.nan_to_num(tgt), ((0, 12 - H), (0, 12 - W))))
-                ms.append(np.pad(np.isfinite(tgt), ((0, 12 - H), (0, 12 - W))))
-                keys.append((s, t))
-        return (torch.tensor(np.array(xs), dtype=torch.float32), torch.tensor(np.array(ys), dtype=torch.float32),
-                torch.tensor(np.array(ms)), keys)
-
-    Xtr, Ytr, Mtr, _ = tensors(TRAIN)
-    Xv, Yv, Mv, kv = tensors(VAL)
+    grids = _cnn_grids(d)
+    Xtr, Ytr, Mtr, _ = _cnn_tensors(torch, a, years, grids, fit_span)
+    if val_span is not None:
+        Xv, Yv, Mv, _ = _cnn_tensors(torch, a, years, grids, val_span)
     net = nn.Sequential(nn.Conv2d(12, 32, 3, padding=1), nn.ReLU(), nn.Conv2d(32, 32, 3, padding=1), nn.ReLU(),
                         nn.Conv2d(32, 1, 3, padding=1))
     opt = torch.optim.Adam(net.parameters(), 1e-3)
-    best, best_state, bad = np.inf, None, 0
-    for ep in range(200):
+    best, best_state, bad, ep_best = np.inf, None, 0, 0
+    for ep in range(epochs or 200):
         net.train()
         perm = torch.randperm(len(Xtr))
         for i in range(0, len(perm), 64):
@@ -122,23 +129,33 @@ def cnn_try(d, a, years, rng):
             opt.zero_grad()
             loss.backward()
             opt.step()
+        if val_span is None:
+            continue
         net.eval()
         with torch.no_grad():
             v = float(((((net(Xv)[:, 0] - Yv) ** 2) * Mv).sum() / Mv.sum()))
         if v < best - 1e-6:
-            best, best_state, bad = v, {k: x.clone() for k, x in net.state_dict().items()}, 0
+            best, best_state, bad, ep_best = v, {k: x.clone() for k, x in net.state_dict().items()}, 0, ep + 1
         else:
             bad += 1
             if bad >= 10:
                 break
-    net.load_state_dict(best_state)
-    with torch.no_grad():
-        pv = net(Xv)[:, 0].numpy()
-    out = np.full(a.shape, np.nan)
-    for (s, t), pr in zip(kv, pv):
-        idx, H, W = grids[s]
-        out[t + 1, idx] = pr[:H, :W].ravel()
-    return out, f"run: {ep + 1} epochs, best validation MSE {best:.3f}"
+    if best_state is not None:
+        net.load_state_dict(best_state)
+    net.eval()
+
+    def predict(span):
+        X, _, _, keys = _cnn_tensors(torch, a, years, grids, span)
+        with torch.no_grad():
+            pr = net(X)[:, 0].numpy()
+        out = np.full(a.shape, np.nan)
+        for (s, t), v in zip(keys, pr):
+            idx, H, W = grids[s]
+            out[t + 1, idx] = v[:H, :W].ravel()
+        return out
+
+    note = f"run: best epoch {ep_best}, validation MSE {best:.3f}" if val_span else f"refit {epochs} epochs"
+    return predict, note, ep_best
 
 
 def isotonic_decreasing(g: np.ndarray) -> np.ndarray:
@@ -195,7 +212,8 @@ def run(cfg: dict, rescore: bool = False) -> None:
     preds["ridge"] = to_grid((T, P), tv, pv, ridge(Xv)) + clim
     lgbm, best_iter = fit_lgbm(Xtr, ytr, Xv, yv)
     preds["lightgbm"] = to_grid((T, P), tv, pv, lgbm.predict(Xv)) + clim
-    cnn, cnn_note = cnn_try(d, a, years, rng)
+    cnn_pred, cnn_note, cnn_epochs = cnn_fit(d, a, years, TRAIN, VAL)
+    cnn = cnn_pred(VAL) if cnn_pred is not None else None
     if cnn is not None:
         preds["cnn"] = cnn + clim
     mask_v = np.zeros((T, P), bool)
@@ -235,12 +253,14 @@ def run(cfg: dict, rescore: bool = False) -> None:
         den = (A ** 2).sum()
         g[h] = float(np.clip((A * obs).sum() / den, 0, 1)) if den > 0 else 0.0
     g[1:] = isotonic_decreasing(g[1:])
-    q = {}
+    q, q_site = {}, {}
     for h in range(1, HMAX + 1):
         t, p, A, obs = la[h]
         if h == 1:
             A = Ahat1[chosen]
         resid = obs - g[h] * A
+        sm = pd.DataFrame({"t": t, "s": d.site_idx[p], "r": resid}).groupby(["t", "s"]).r.mean()
+        q_site[h] = (float(np.percentile(sm, 10)), float(np.percentile(sm, 90)))
         q[h] = (float(np.percentile(resid, 10)), float(np.percentile(resid, 90)))
         dmp = 1 - ((obs - la[h][2]) ** 2).mean() / (obs ** 2).mean()
         fus = 1 - (resid ** 2).mean() / (obs ** 2).mean()
@@ -248,7 +268,7 @@ def run(cfg: dict, rescore: bool = False) -> None:
         lead_rows.append({"lead": h, "days": 5 * h, "skill_damped": dmp, "skill_fused": fus, "g": g[h],
                           "phi": phi[h], "cover_10_90": cover, "n": len(obs)})
     pd.DataFrame(lead_rows).to_csv(out / "val_by_lead.csv", index=False)
-    frozen = {"chosen_h1": chosen, "ridge_alpha": alpha, "lgbm_rounds": int(best_iter), "g": g[1:].tolist(),
+    frozen = {"q10_q90_site_mean": {h: q_site[h] for h in q_site}, "chosen_h1": chosen, "ridge_alpha": alpha, "lgbm_rounds": int(best_iter), "g": g[1:].tolist(),
               "q10_q90": {h: q[h] for h in q}, "features": names, "cnn": cnn_note, "B": 0,
               "note": "g(h) and intervals are kept from the validation stage for the final refit (in-sample "
                       "shrinkage of a refit ML model would be biased); every other part is refitted on 2019-2024."}
@@ -269,16 +289,19 @@ def run(cfg: dict, rescore: bool = False) -> None:
     ts, ps = h1_rows(a2, years, TEST)
     if chosen == "lightgbm":
         m2, _ = fit_lgbm(X2[t2, p2], a2[t2 + 1, p2], None, None, rounds=best_iter)
-        A1 = m2.predict(X2[ts, ps])
+        pred1 = lambda Xq, aq: m2.predict(Xq)                                  # noqa: E731
     elif chosen == "ridge":
         _, r2 = fit_ridge(X2[t2, p2], a2[t2 + 1, p2], X2[t2, p2], a2[t2 + 1, p2], alphas=(alpha,))
-        A1 = r2(X2[ts, ps])
+        pred1 = lambda Xq, aq: r2(Xq)                                          # noqa: E731
     elif chosen == "damped persistence":
-        A1 = phi2[1] * alast2[ts, ps]
+        pred1 = lambda Xq, aq: phi2[1] * aq                                    # noqa: E731
     elif chosen == "climatology":
-        A1 = np.zeros(len(ts))
-    else:
-        raise NotImplementedError("CNN refit not implemented")
+        pred1 = lambda Xq, aq: np.zeros(len(aq))                               # noqa: E731
+    else:                                                                      # cnn, refit with its epoch count
+        cnn2, _, _ = cnn_fit(d, a2, years, (TRAIN[0], VAL[1]), None, epochs=cnn_epochs)
+        grid1 = cnn2(TEST)
+        pred1 = None
+    A1 = pred1(X2[ts, ps], alast2[ts, ps]) if pred1 is not None else grid1[ts + 1, ps]
     lt = lead_arrays(a2, alast2, phi2, years, TEST)
     rows = []
     for h in range(1, HMAX + 1):
@@ -293,6 +316,20 @@ def run(cfg: dict, rescore: bool = False) -> None:
                      "cover_10_90": float(((resid >= q[h][0]) & (resid <= q[h][1])).mean()), "n": len(obs)})
     test = pd.DataFrame(rows)
     test.to_csv(out / "test2025_by_lead.csv", index=False)
+    t0 = int(np.flatnonzero(years == VAL[1])[-1])                     # origin: last window of 2024
+    fan = []
+    for h in range(1, min(HMAX, T - 1 - t0) + 1):
+        if h == 1:
+            A = g[1] * (pred1(X2[t0], alast2[t0]) if pred1 is not None else np.nan_to_num(grid1[t0 + 1]))
+        else:
+            A = g[h] * phi2[h] * alast2[t0]
+        for s_i, s_name in enumerate(d.sites):
+            idx = d.site_idx == s_i
+            fc_ = np.nanmean((clim2[t0 + h] + A)[idx])
+            fan.append({"site": s_name, "lead": h, "date": d.dates[t0 + h], "forecast": fc_,
+                        "lo10": fc_ + q_site[h][0], "hi90": fc_ + q_site[h][1], "clim": np.nanmean(clim2[t0 + h][idx]),
+                        "observed": np.nanmean(d.Y[t0 + h][idx]), "obs_coverage": float(np.isfinite(d.Y[t0 + h][idx]).mean())})
+    pd.DataFrame(fan).to_csv(out / "fan_2025_from_last_2024_window.csv", index=False)
     mask_s = np.zeros((T, P), bool)
     mask_s[ts + 1, ps] = True
     pred1 = to_grid((T, P), ts, ps, g[1] * A1) + clim2

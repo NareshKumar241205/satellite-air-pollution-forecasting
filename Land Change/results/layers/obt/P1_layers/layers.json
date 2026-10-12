@@ -1,0 +1,45 @@
+{
+  "season_months": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "years": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "grid_deg": 0.04,
+  "dL_class": "builtup",
+  "classes": {
+    "water": "MNDWI > 0",
+    "vegetation": "NDVI >= 0.3",
+    "builtup": "NDBI > 0",
+    "other": "rest"
+  },
+  "land_source": {
+    "Chennai": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Coimbatore": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Madurai": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Tiruchirappalli": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Salem": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Tiruppur": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Hosur": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Vellore": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Thoothukudi": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Kanchipuram": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Cuddalore": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Thanjavur": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Dindigul": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Karur": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Tiruvannamalai": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Nagapattinam": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Sivakasi": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Ramanathapuram": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)"
+  },
+  "note": "The 1 km proxy moves a block fraction in 6.25 pp steps and tracks greenness (see G1)."
+}

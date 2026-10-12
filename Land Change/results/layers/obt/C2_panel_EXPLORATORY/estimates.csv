@@ -1,0 +1,15 @@
+outcome,model,term,estimate,boot_se,ci95_lo,ci95_hi,n_draws
+raw Jan-Apr NO2 (log of seasonal mean),panel two-way FE + SLX,L (own built-up),-0.3876642546705314,0.5380783503602365,-1.2592889854381502,0.871470651203837,500
+raw Jan-Apr NO2 (log of seasonal mean),panel two-way FE + SLX,WL (neighbour built-up),1.66207383161996,1.2936198371074488,-0.561187827949294,4.399814760954843,500
+raw Jan-Apr NO2 (log of seasonal mean),lead/lag (2020-2022 outcomes),L,-0.22929733944891653,0.6613286451579505,-1.5524905467807897,1.1023253725332647,500
+raw Jan-Apr NO2 (log of seasonal mean),lead/lag (2020-2022 outcomes),L_lead (placebo: must be ~0),2.7449045157985648,1.2078631496799834,0.3568755132090598,4.867745902167369,500
+raw Jan-Apr NO2 (log of seasonal mean),lead/lag (2020-2022 outcomes),L_lag,5.089396659333473,0.9326740507134045,3.372773657798772,6.834518688438615,500
+raw Jan-Apr NO2 (log of seasonal mean),lead/lag (2020-2022 outcomes),WL,3.224496816162932,2.42850376411544,-1.2588887017029602,8.118373922110178,500
+raw Jan-Apr NO2 (log of seasonal mean),long difference 2019->2023 + site FE (G1 design),dL,0.1305748788486473,0.6343382863714014,-1.048405706935592,1.4655212572122422,500
+ERA5-deweathered Jan-Apr NO2 (mean of window logs),panel two-way FE + SLX,L (own built-up),-0.2827305429594813,0.5216621200355144,-1.1374427769078326,0.8831401524073478,500
+ERA5-deweathered Jan-Apr NO2 (mean of window logs),panel two-way FE + SLX,WL (neighbour built-up),3.024514983129147,1.1147019305896868,0.8854972943242057,5.393436207997058,500
+ERA5-deweathered Jan-Apr NO2 (mean of window logs),lead/lag (2020-2022 outcomes),L,-0.18026038081353588,0.4518263257497664,-1.0832330745849563,0.7405851887193435,500
+ERA5-deweathered Jan-Apr NO2 (mean of window logs),lead/lag (2020-2022 outcomes),L_lead (placebo: must be ~0),0.6017259505000805,1.2944215775578405,-2.3595816121497317,2.7013488457225594,500
+ERA5-deweathered Jan-Apr NO2 (mean of window logs),lead/lag (2020-2022 outcomes),L_lag,6.628618500448296,1.1500786940833938,4.548521067069023,8.982625289974187,500
+ERA5-deweathered Jan-Apr NO2 (mean of window logs),lead/lag (2020-2022 outcomes),WL,7.539352720388504,2.4370260368980565,2.8894666920621805,12.455582741040407,500
+ERA5-deweathered Jan-Apr NO2 (mean of window logs),long difference 2019->2023 + site FE (G1 design),dL,0.11122610882921648,0.6770935876639452,-1.169537819158764,1.4149149286656275,500

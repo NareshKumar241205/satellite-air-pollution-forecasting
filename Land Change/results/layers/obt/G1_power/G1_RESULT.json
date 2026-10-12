@@ -1,0 +1,113 @@
+{
+  "passes": false,
+  "effect_pct_per_pp": 0.5,
+  "tuning_years": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "cities": [
+    "Chennai",
+    "Coimbatore",
+    "Madurai",
+    "Tiruchirappalli",
+    "Salem",
+    "Tiruppur",
+    "Hosur",
+    "Vellore",
+    "Thoothukudi",
+    "Kanchipuram",
+    "Cuddalore",
+    "Thanjavur",
+    "Dindigul",
+    "Karur",
+    "Tiruvannamalai",
+    "Nagapattinam",
+    "Sivakasi",
+    "Ramanathapuram"
+  ],
+  "dL_source": {
+    "Chennai": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Coimbatore": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Madurai": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Tiruchirappalli": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Salem": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Tiruppur": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Hosur": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Vellore": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Thoothukudi": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Kanchipuram": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Cuddalore": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Thanjavur": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Dindigul": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Karur": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Tiruvannamalai": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Nagapattinam": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Sivakasi": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)",
+    "Ramanathapuram": "alternative layer obt ('data/ee_obt', 'obt', 'building_presence', 1)"
+  },
+  "pooled": {
+    "all_tuning_pairs": {
+      "n": 8908,
+      "dL_sd_within": 0.1373461918,
+      "dL_noise_sd": 0.1559152544,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 7.0859760353,
+      "n_eff": 1327.6899571461,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 1.0896453681,
+      "passes": false
+    },
+    "no_lockdown_year": {
+      "n": 4454,
+      "dL_sd_within": 0.1364875109,
+      "dL_noise_sd": 0.101789483,
+      "dL_signal_sd": 0.0909271234,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 6.7472859681,
+      "n_eff": 799.1703699615,
+      "mde_pct_per_pp": 7.3539354915,
+      "sd_required_pp": 1.3373443993,
+      "passes": false
+    },
+    "no_v1_v2_pair": {
+      "n": 6681,
+      "dL_sd_within": 0.1421766308,
+      "dL_noise_sd": 0.2012507371,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 7.332161451,
+      "n_eff": 914.0761691479,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 1.3588598257,
+      "passes": false
+    },
+    "long_2019_2023": {
+      "n": 2227,
+      "dL_sd_within": 0.2848304652,
+      "dL_noise_sd": 0.1451736339,
+      "dL_signal_sd": 0.2450571565,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 6.6606242741,
+      "n_eff": 332.6935844058,
+      "mde_pct_per_pp": 4.1747374727,
+      "sd_required_pp": 2.0460985881,
+      "passes": false
+    }
+  },
+  "sensitivity_city_weighted_mde": {
+    "all_tuning_pairs": 6.454401916708942,
+    "no_lockdown_year": 6.54794554049899,
+    "no_v1_v2_pair": 4.88509317912013,
+    "long_2019_2023": 3.394894925154097
+  },
+  "gate": {
+    "design": "pooled long difference",
+    "passes_at_0.5_pct_per_pp": false,
+    "passes_at_1_pct_per_pp": false
+  },
+  "note": "passes uses the pooled MDE (the gate as defined); the city-weighted MDE is a sensitivity only"
+}

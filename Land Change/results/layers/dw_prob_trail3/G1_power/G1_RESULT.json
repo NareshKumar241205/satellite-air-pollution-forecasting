@@ -1,0 +1,113 @@
+{
+  "passes": false,
+  "effect_pct_per_pp": 0.5,
+  "tuning_years": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "cities": [
+    "Chennai",
+    "Coimbatore",
+    "Madurai",
+    "Tiruchirappalli",
+    "Salem",
+    "Tiruppur",
+    "Hosur",
+    "Vellore",
+    "Thoothukudi",
+    "Kanchipuram",
+    "Cuddalore",
+    "Thanjavur",
+    "Dindigul",
+    "Karur",
+    "Tiruvannamalai",
+    "Nagapattinam",
+    "Sivakasi",
+    "Ramanathapuram"
+  ],
+  "dL_source": {
+    "Chennai": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Coimbatore": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Madurai": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Tiruchirappalli": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Salem": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Tiruppur": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Hosur": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Vellore": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Thoothukudi": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Kanchipuram": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Cuddalore": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Thanjavur": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Dindigul": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Karur": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Tiruvannamalai": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Nagapattinam": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Sivakasi": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Ramanathapuram": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)"
+  },
+  "pooled": {
+    "all_tuning_pairs": {
+      "n": 8907,
+      "dL_sd_within": 0.6294659566,
+      "dL_noise_sd": 0.8719481791,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 7.0860100635,
+      "n_eff": 1327.5876605497,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 1.0896925812,
+      "passes": false
+    },
+    "no_lockdown_year": {
+      "n": 4454,
+      "dL_sd_within": 0.6150652315,
+      "dL_noise_sd": 0.5471639621,
+      "dL_signal_sd": 0.2809214081,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 6.7472859681,
+      "n_eff": 799.1703699615,
+      "mde_pct_per_pp": 2.3802821012,
+      "sd_required_pp": 1.3373443993,
+      "passes": false
+    },
+    "no_v1_v2_pair": {
+      "n": 6680,
+      "dL_sd_within": 0.6149545986,
+      "dL_noise_sd": 0.9115494845,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 7.3322415424,
+      "n_eff": 913.9604320017,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 1.358960705,
+      "passes": false
+    },
+    "long_2019_2023": {
+      "n": 2226,
+      "dL_sd_within": 1.4484928611,
+      "dL_noise_sd": 1.2834843599,
+      "dL_signal_sd": 0.6714160159,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 6.6546208678,
+      "n_eff": 332.7471967177,
+      "mde_pct_per_pp": 1.5222229154,
+      "sd_required_pp": 2.0440896904,
+      "passes": false
+    }
+  },
+  "sensitivity_city_weighted_mde": {
+    "all_tuning_pairs": 1.4624717334566006,
+    "no_lockdown_year": 1.160465381122348,
+    "no_v1_v2_pair": 1.8235790847506002,
+    "long_2019_2023": 0.9003076744102027
+  },
+  "gate": {
+    "design": "pooled long difference",
+    "passes_at_0.5_pct_per_pp": false,
+    "passes_at_1_pct_per_pp": false
+  },
+  "note": "passes uses the pooled MDE (the gate as defined); the city-weighted MDE is a sensitivity only"
+}

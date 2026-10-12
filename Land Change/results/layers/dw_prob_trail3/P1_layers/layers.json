@@ -1,0 +1,45 @@
+{
+  "season_months": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "years": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "grid_deg": 0.04,
+  "dL_class": "builtup",
+  "classes": {
+    "water": "MNDWI > 0",
+    "vegetation": "NDVI >= 0.3",
+    "builtup": "NDBI > 0",
+    "other": "rest"
+  },
+  "land_source": {
+    "Chennai": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Coimbatore": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Madurai": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Tiruchirappalli": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Salem": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Tiruppur": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Hosur": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Vellore": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Thoothukudi": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Kanchipuram": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Cuddalore": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Thanjavur": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Dindigul": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Karur": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Tiruvannamalai": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Nagapattinam": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Sivakasi": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)",
+    "Ramanathapuram": "alternative layer dw_prob_trail3 ('data/ee_dwprob', 'dwprob', 'mean', 3)"
+  },
+  "note": "The 1 km proxy moves a block fraction in 6.25 pp steps and tracks greenness (see G1)."
+}

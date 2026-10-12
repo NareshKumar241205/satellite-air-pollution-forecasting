@@ -1,0 +1,48 @@
+{
+  "steadier_layer": "dw_prob_trail3",
+  "rule_passes": false,
+  "B": 0,
+  "detection_limit_pct_per_pp": 1.5222229154,
+  "layers": [
+    {
+      "layer": "dw_label",
+      "available": true,
+      "mde": 0.7319271899,
+      "g1_pass_0.5": false,
+      "lead": 0.3081971726,
+      "lead_lo": 0.1357168786,
+      "lead_hi": 0.452386703,
+      "WL": 0.2666980409,
+      "WL_lo": 0.0490601105,
+      "WL_hi": 0.4757991048,
+      "clean": false
+    },
+    {
+      "layer": "dw_prob_trail3",
+      "available": true,
+      "mde": 1.5222229154,
+      "g1_pass_0.5": false,
+      "lead": 0.2376351624,
+      "lead_lo": -0.2712109459,
+      "lead_hi": 0.7706909785,
+      "WL": 0.1684205311,
+      "WL_lo": -0.2183062064,
+      "WL_hi": 0.5765968857,
+      "clean": true
+    },
+    {
+      "layer": "obt",
+      "available": true,
+      "mde": 4.1747374727,
+      "g1_pass_0.5": false,
+      "lead": 2.7449045158,
+      "lead_lo": 0.3568755132,
+      "lead_hi": 4.8677459022,
+      "WL": 1.6620738316,
+      "WL_lo": -0.5611878279,
+      "WL_hi": 4.399814761,
+      "clean": false
+    }
+  ],
+  "rule": "Land Change/DECISION_RULES.md section B"
+}

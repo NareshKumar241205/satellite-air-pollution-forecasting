@@ -131,7 +131,7 @@ def land_from_csv(csv_dir, city: str, shape: tuple[int, int], years: list[int],
 
 ALT_LAYERS = {
     # name: (data dir, file prefix, column, trailing window in years); see Land Change/DIAGNOSTICS_PLAN.md
-    "dw_prob_trail3": ("data/ee_dwprob", "dwprob", "built_prob", 3),
+    "dw_prob_trail3": ("data/ee_dwprob", "dwprob", "mean", 3),          # EE names a single-band mean "mean"
     "obt": ("data/ee_obt", "obt", "building_presence", 1),
 }
 
