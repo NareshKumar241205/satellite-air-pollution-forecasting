@@ -24,6 +24,9 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
+
+import yaml
 
 import ee
 
@@ -90,11 +93,15 @@ def main() -> None:
     ap.add_argument("--folder", default="aqf_land_ee", help="Google Drive folder name (flat)")
     ap.add_argument("--scale", type=float, default=20.0, help="metres; B11 is native 20 m")
     ap.add_argument("--classifier", choices=["indices", "dynamicworld"], default="indices")
+    ap.add_argument("--sites", type=Path, help="YAML {name: [lat, lon]} to use instead of the configured sites")
+    ap.add_argument("--out-dir", type=Path, help="for --direct (default Land Change/data/ee_landfrac)")
     ap.add_argument("--direct", action="store_true",
                     help="fetch each table now (getInfo) into Land Change/data/ee_landfrac/ instead of a Drive export")
     args = ap.parse_args()
     ee.Initialize(project=args.project)
     cfg = load_land_config()
+    if args.sites:
+        cfg["cities"] = yaml.safe_load(args.sites.read_text())
     blocks = block_features(cfg)
     region = blocks.geometry().bounds()
     for y in args.years:
@@ -107,7 +114,7 @@ def main() -> None:
 
             from aqf.data import ROOT
 
-            out = ROOT / "Land Change/data/ee_landfrac" / f"landfrac_{y}.csv"
+            out = (args.out_dir or ROOT / "Land Change/data/ee_landfrac") / f"landfrac_{y}.csv"
             out.parent.mkdir(parents=True, exist_ok=True)
             rows = [f["properties"] for f in table.getInfo()["features"]]
             cols = ["city", "row", "col", "year", "valid_frac", "water", "vegetation", "builtup", "other"]

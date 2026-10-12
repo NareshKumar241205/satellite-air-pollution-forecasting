@@ -75,8 +75,9 @@ g1:
   alpha: 0.05
   power: 0.8
   # Assumed effect to detect: +0.5 % NO2 column per percentage point of built-up gain (10 pp -> ~5 %).
-  # Placeholder: replace with the ADR-001 value.
+  # Confirmed by Naresh, 12 Oct 2026. The gate is the pooled long difference 2019->2023 (Land Change/SITE_SELECTION.md).
   effect_pct_per_pp: 0.5
+  effects_reported: [0.5, 1.0]  # decision (12 Oct): gate at 0.5, also report pass/fail at 1.0
   dL_meaningful_pp: 5.0        # a pixel-year counts as "changed" when |dL| exceeds this
 
 # ERA5 (scripts/cds_era5.py): one request per year, the TNAQ box padded by 1 deg, around the S5P overpass

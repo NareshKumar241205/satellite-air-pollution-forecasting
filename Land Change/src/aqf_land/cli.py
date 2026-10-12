@@ -125,6 +125,9 @@ def g1(cfg: dict, pairs: pd.DataFrame) -> pd.DataFrame:
         "pooled": json.loads(pooled.replace([np.inf], None).to_json(orient="index")),
         "sensitivity_city_weighted_mde": res[res.city == "ALL_weighted"].set_index("pairs").mde_pct_per_pp
         .replace([np.inf], None).to_dict(),
+        "gate": {"design": "pooled long difference", **{f"passes_at_{e:g}_pct_per_pp": bool(
+            pooled.loc[f"long_{cfg['years']['tuning'][0]}_{cfg['years']['tuning'][-1]}", "mde_pct_per_pp"] <= e)
+            for e in cfg["g1"].get("effects_reported", [cfg["g1"]["effect_pct_per_pp"]])}},
         "note": "passes uses the pooled MDE (the gate as defined); the city-weighted MDE is a sensitivity only"},
         indent=2))
     for name, r in pooled.iterrows():

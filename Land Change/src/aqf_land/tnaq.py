@@ -29,6 +29,9 @@ def load_land_config(path: Path | str = ROOT / "configs/land.yaml") -> dict:
         cfg = yaml.safe_load(f)
     cfg["tnaq"]["dir"] = (ROOT / cfg["tnaq"]["dir"]).resolve()
     cfg["tnaq"]["extra_dirs"] = [(ROOT / d).resolve() for d in cfg["tnaq"].get("extra_dirs", [])]
+    added = ROOT / "configs/sites_added.yaml"          # growth-selected tiles (Land Change/SITE_SELECTION.md)
+    if added.exists() and cfg.get("use_added_sites", True):
+        cfg["cities"].update(yaml.safe_load(added.read_text()) or {})
     cfg["outputs"] = ROOT / cfg["outputs"]
     cfg["processed"] = ROOT / "data/processed"
     return cfg

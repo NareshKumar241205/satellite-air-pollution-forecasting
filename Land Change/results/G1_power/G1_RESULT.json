@@ -104,5 +104,10 @@
     "no_v1_v2_pair": 0.8500883620072306,
     "long_2019_2023": 0.44822852117618567
   },
+  "gate": {
+    "design": "pooled long difference",
+    "passes_at_0.5_pct_per_pp": false,
+    "passes_at_1_pct_per_pp": true
+  },
   "note": "passes uses the pooled MDE (the gate as defined); the city-weighted MDE is a sensitivity only"
 }
