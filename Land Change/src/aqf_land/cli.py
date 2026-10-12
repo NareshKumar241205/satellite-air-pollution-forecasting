@@ -147,7 +147,7 @@ def _deweathered(cfg: dict, tune: list[int]) -> dict | None:
     from aqf_land.deweather import deweather_site
     from aqf_land.tnaq import block_mean, read_cities
 
-    f = cfg["outputs"] / "P1_era5" / "era5_city_windows.csv"
+    f = ROOT / "Land Change/results/P1_era5/era5_city_windows.csv"      # shared by every layer
     if not f.exists():
         return None
     era = pd.read_csv(f, parse_dates=["window"])
@@ -255,6 +255,42 @@ def diagnostics(cfg: dict) -> None:
     log.info("diagnostics -> %s", out)
 
 
+def b_decision(cfg: dict) -> dict:
+    """Apply Land Change/DECISION_RULES.md section B mechanically to the per-layer G1 and C2 results.
+    'Clean' is read on the primary (raw NO2) panel outcome."""
+    rows, base = [], cfg["outputs"]
+    tune = cfg["years"]["tuning"]
+    ld = f"long_{tune[0]}_{tune[-1]}"
+    for layer in ("dw_label", "dw_prob_trail3", "obt"):
+        root = base if layer == "dw_label" else base / "layers" / layer
+        g1f, c2f = root / "G1_power" / "G1_RESULT.json", root / "C2_panel_EXPLORATORY" / "estimates.csv"
+        if not (g1f.exists() and c2f.exists()):
+            rows.append({"layer": layer, "available": False})
+            continue
+        g = json.loads(g1f.read_text())
+        e = pd.read_csv(c2f)
+        e = e[e.outcome.str.startswith("raw")]
+        lead = e[e.term.str.startswith("L_lead")].iloc[0]
+        wl = e[(e.model == "panel two-way FE + SLX") & e.term.str.startswith("WL")].iloc[0]
+        mde = g["pooled"][ld]["mde_pct_per_pp"]
+        clean = bool(lead.ci95_lo <= 0 <= lead.ci95_hi and wl.ci95_lo <= 0 <= wl.ci95_hi)
+        rows.append({"layer": layer, "available": True, "mde": mde, "g1_pass_0.5": bool(mde is not None and mde <= 0.5),
+                     "lead": lead.estimate, "lead_lo": lead.ci95_lo, "lead_hi": lead.ci95_hi, "WL": wl.estimate,
+                     "WL_lo": wl.ci95_lo, "WL_hi": wl.ci95_hi, "clean": clean})
+    r = pd.DataFrame(rows)
+    steady = r[r.layer.isin(["dw_prob_trail3", "obt"]) & r.available.astype(bool)]
+    steady = steady[steady.clean.astype(bool)]
+    chosen = None if steady.empty else steady.sort_values("mde").layer.iloc[0]
+    passes = bool(chosen is not None and r.set_index("layer").loc[chosen, "g1_pass_0.5"])
+    mde_ref = r.set_index("layer").loc[chosen or "dw_label", "mde"]
+    dec = {"steadier_layer": chosen, "rule_passes": passes, "B": "confirmatory C2" if passes else 0,
+           "detection_limit_pct_per_pp": mde_ref, "layers": json.loads(r.to_json(orient="records")),
+           "rule": "Land Change/DECISION_RULES.md section B"}
+    (base / "B_decision.json").write_text(json.dumps(dec, indent=2))
+    log.info("B decision: steadier layer %s, rule passes %s -> B = %s", chosen, passes, dec["B"])
+    return dec
+
+
 def _g1_figures(cfg: dict, pairs: pd.DataFrame, out) -> None:
     import matplotlib
 
@@ -309,6 +345,9 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("provenance", help="TROPOMI processor versions: what the local export records")
     sub.add_parser("layers", help="yearly land fractions, same-season NO2, per-pixel year-pair table")
     sub.add_parser("g1", help="gate G1: dL distribution and power over the 12x12 pixels (tuning years only)")
+    sub.add_parser("bdecision", help="apply decision rule B to the per-layer G1 and C2 results")
+    sf = sub.add_parser("forecast", help="DECISION_RULES C-E: validation ladder, fusion, then the one-time 2025 test")
+    sf.add_argument("--rescore-test", action="store_true", help="only to reproduce identical numbers; never to tune")
     sub.add_parser("diag", help="lead-test diagnostics D1-D6 (Land Change/DIAGNOSTICS_PLAN.md)")
     sub.add_parser("panel", help="C2 panel, EXPLORATORY: two-way FE + SLX, block bootstrap, placebo, lead/lag")
     sub.add_parser("all", help="cache, layers, provenance, g1")
@@ -324,6 +363,14 @@ def main(argv: list[str] | None = None) -> None:
         cfg["outputs"] = cfg["outputs"] / "layers" / args.layer
     if args.cmd == "diag":
         diagnostics(cfg)
+        return
+    if args.cmd == "bdecision":
+        b_decision(cfg)
+        return
+    if args.cmd == "forecast":
+        from aqf_land import forecast_run
+
+        forecast_run.run(cfg, rescore=args.rescore_test)
         return
     if args.cmd == "panel":
         panel(cfg)
