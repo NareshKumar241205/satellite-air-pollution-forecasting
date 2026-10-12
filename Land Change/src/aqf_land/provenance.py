@@ -8,7 +8,7 @@ What can be checked locally:
 The collection COPERNICUS/S5P/OFFL/L3_NO2 is built from the operational OFFL L2 stream as it was processed at
 the time, not from one consistent reprocessing, so 2019-2024 spans several processor versions. The per-image
 version is an Earth Engine image property, so the exact count per window needs scripts/ee_s5p_versions.py.
-Until that runs, the approximate public timeline below is used and flagged as such.
+The timeline below was checked against that query (month level).
 """
 
 from __future__ import annotations
@@ -20,16 +20,23 @@ import numpy as np
 import pandas as pd
 import rasterio
 
-# Approximate OFFL NO2 processor timeline (start dates) from the S5P product readme / release notes.
-# Only the v1 -> v2 boundary matters for this design; the rest is context. VERIFY with ee_s5p_versions.py.
+# OFFL NO2 processor start dates. Months verified with Earth Engine image properties (PROCESSOR_VERSION, results/
+# P1_provenance/ee_processor_versions.csv, queried 12 Oct 2026); days inside a switch month are approximate.
 TIMELINE = [
-    ("2018-04-30", "1.2.x"),
-    ("2019-03-20", "1.3.x"),
-    ("2020-12-02", "1.4.0"),
+    ("2018-04-30", "1.0.x-1.1.0"),
+    ("2018-10-15", "1.2.0"),
+    ("2018-11-25", "1.2.2"),
+    ("2019-03-20", "1.3.0"),
+    ("2019-04-22", "1.3.1"),
+    ("2019-06-26", "1.3.2"),
+    ("2020-11-29", "1.4.0"),
     ("2021-07-01", "2.2.0"),   # FRESCO-wide clouds + new surface albedo: tropospheric columns up, most over polluted areas
     ("2021-11-14", "2.3.1"),
     ("2022-07-17", "2.4.0"),
-    ("2023-03-12", "2.5.0 and later (approximate)"),
+    ("2023-03-12", "2.5.0"),
+    ("2023-11-26", "2.6.0"),
+    ("2024-09-08", "2.7.1"),
+    ("2024-11-16", "2.8.0"),
 ]
 V2_START = pd.Timestamp("2021-07-01")
 

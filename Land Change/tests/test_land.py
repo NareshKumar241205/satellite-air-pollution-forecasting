@@ -28,6 +28,11 @@ def test_city_boxes_are_snapped_and_clipped_to_whole_blocks():
     assert abs(t.c + t.a * ch.col0 - 79.96) < 1e-9 and abs(t.f + t.e * ch.row0 - 13.30) < 1e-9
     assert all(b.rows % 4 == 0 and b.cols % 4 == 0 for b in boxes.values())
     assert boxes["Madurai"].rows == boxes["Madurai"].cols == 48
+    bs = list(boxes.values())
+    for i, a in enumerate(bs):                   # no pixel may be counted in two cities
+        for b in bs[i + 1:]:
+            assert (a.row0 + a.rows <= b.row0 or b.row0 + b.rows <= a.row0 or
+                    a.col0 + a.cols <= b.col0 or b.col0 + b.cols <= a.col0), (a.city, b.city)
 
 
 def _pixel(**r):
@@ -110,7 +115,7 @@ def test_g1_symmetric_dl_counts_as_noise_not_signal():
 
 def test_processor_timeline_v1_v2_boundary():
     v = version_at(pd.DatetimeIndex(["2021-04-26", "2021-07-01", "2022-02-01"]))
-    assert v[0].startswith("1.") and v[1] == "2.2.0" and v[2] == "2.3.1"
+    assert v[0] == "1.4.0" and v[1] == "2.2.0" and v[2] == "2.3.1"
 
 
 def test_era5_window_scalars_mean_sum_and_wind_speed():

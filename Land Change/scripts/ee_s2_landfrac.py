@@ -23,6 +23,7 @@ instead of the 1 km proxy.
 from __future__ import annotations
 
 import argparse
+import json
 
 import ee
 
@@ -89,6 +90,8 @@ def main() -> None:
     ap.add_argument("--folder", default="aqf_land_ee", help="Google Drive folder name (flat)")
     ap.add_argument("--scale", type=float, default=20.0, help="metres; B11 is native 20 m")
     ap.add_argument("--classifier", choices=["indices", "dynamicworld"], default="indices")
+    ap.add_argument("--direct", action="store_true",
+                    help="fetch each table now (getInfo) into Land Change/data/ee_landfrac/ instead of a Drive export")
     args = ap.parse_args()
     ee.Initialize(project=args.project)
     cfg = load_land_config()
@@ -99,6 +102,21 @@ def main() -> None:
                else classes(composite(y, cfg["season_months"], region)))
         table = img.reduceRegions(collection=blocks, reducer=ee.Reducer.mean(), scale=args.scale, tileScale=4)
         table = table.map(lambda f: f.set("year", y).setGeometry(None))
+        if args.direct:
+            import pandas as pd
+
+            from aqf.data import ROOT
+
+            out = ROOT / "Land Change/data/ee_landfrac" / f"landfrac_{y}.csv"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            rows = [f["properties"] for f in table.getInfo()["features"]]
+            cols = ["city", "row", "col", "year", "valid_frac", "water", "vegetation", "builtup", "other"]
+            pd.DataFrame(rows).reindex(columns=cols).to_csv(out, index=False)
+            label = ("Earth Engine Dynamic World V1, same-season mode label, 10 m" if args.classifier == "dynamicworld"
+                     else f"Earth Engine S2_SR_HARMONIZED index rules, {args.scale:g} m")
+            (out.parent / "source.json").write_text(json.dumps({"label": label, "classifier": args.classifier}))
+            print(f"{y}: {len(rows)} blocks -> {out}")
+            continue
         task = ee.batch.Export.table.toDrive(
             collection=table, description=f"aqf_land_{args.classifier}_{y}", folder=args.folder,
             fileNamePrefix=f"landfrac_{y}",

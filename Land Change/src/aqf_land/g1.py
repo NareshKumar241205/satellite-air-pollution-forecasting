@@ -21,6 +21,8 @@ For each city and for all cities pooled:
    per pp, and the true-dL spread the design would need for the assumed effect:
    sd_required = (z_{1-alpha/2} + z_power) * sd(e) / (effect * sqrt(N_eff)).
 G1 passes when the pooled MDE is at most the assumed effect `effect_pct_per_pp`.
+Sensitivity only (row 'ALL_weighted', never the gate): cities combined by precision, MDE = z / sqrt(sum_c N_eff_c
+sd_signal_c^2 / sd(e)_c^2), which lets growing cities count more than static ones with their own noise level.
 Everything is computed for consecutive-year pairs and for one long difference over the tuning years.
 """
 
@@ -104,4 +106,11 @@ def run_g1(pairs: pd.DataFrame, cfg: dict) -> pd.DataFrame:
         for city, g in s.groupby("city"):
             rows.append({"pairs": name, "city": city, **power_row(g, cfg)})
         rows.append({"pairs": name, "city": "ALL", **power_row(s, cfg)})
+        c = pd.DataFrame([r for r in rows if r["pairs"] == name and r["city"] not in ("ALL", "ALL_weighted")])
+        info = (c.n_eff * c.dL_signal_sd ** 2 / c.dNO2_resid_sd ** 2).sum()
+        z = norm.ppf(1 - cfg["g1"]["alpha"] / 2) + norm.ppf(cfg["g1"]["power"])
+        mde = z / np.sqrt(info) if info > 0 else np.inf
+        rows.append({"pairs": name, "city": "ALL_weighted", "n": int(c.n.sum()), "mde_pct_per_pp": mde,
+                     "effect_pct_per_pp": cfg["g1"]["effect_pct_per_pp"],
+                     "passes": bool(mde <= cfg["g1"]["effect_pct_per_pp"])})
     return pd.DataFrame(rows)

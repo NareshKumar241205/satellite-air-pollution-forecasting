@@ -33,45 +33,51 @@ uv run pytest -q "Land Change/tests"
 
 ## Results
 
-### Processor versions (`results/P1_provenance/PROVENANCE.md`)
+### Processor versions (`results/P1_provenance/`): verified with Earth Engine
 
-- **The local export doesn't record the TROPOMI processor version.** The GeoTIFFs carry only `AREA_OR_POINT`, and the manifests have no version column.
-- By the public OFFL timeline (approximate), the Jan–Apr seasons of 2019–2021 are v1.x, and those of 2022–2024 are v2.3.1 or later. So the 2021→2022 pair straddles the v1→v2 change.
-- The data shows no step at that pair:
-  - The mean change across cities is −1.6 %. Other pairs range from −22 % (2020, lockdown) to +16 %.
-  - The level dependence in 2021→2022 (−11 % per log-unit) is the same regression to the mean every pair shows (−2 to −10).
-- So the step is either small over Tamil Nadu or absent from this collection. **Exact versions need `scripts/ee_s5p_versions.py`.**
+The local files don't record the version, so I queried `PROCESSOR_VERSION` from Earth Engine (project
+`airline-portal`; `ee_processor_versions.csv`, by month). The Jan–Apr season of each year uses:
 
-### Gate G1 (`results/G1_power/`): **FAIL on the local data, and the cause is the land proxy, not the design**
+| Season | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| Processor | 1.2.2 → 1.3.0/1.3.1 | 1.3.2 | 1.4.0 | 2.3.1 | 2.4.0 → 2.5.0 | 2.6.0 |
 
-| Pooled, 9 cities | pairs | sd(dL) | noise sd | signal sd | corr(dL, dVeg) | sd(dNO2 resid) | N_eff | needs true sd(dL) ≥ |
+- **Every season is a different processor, and v1 → v2 (v2.2.0, July 2021) falls between 2021 and 2022.**
+- The NO2 data shows no visible step at that pair: the mean across cities is −1.6 %, while other pairs range from −22 % (lockdown) to +16 %. Its level dependence matches every other pair.
+- City-year fixed effects absorb any uniform step. G1 is also reported without the 2021→22 pair.
+
+### Gate G1 (`results/G1_power/`): **FAIL** (pooled MDE 0.73 %/pp against the assumed 0.5)
+
+dL comes from **Dynamic World V1** (same-season mode label, 10 m), fetched from Earth Engine for 2019–2025
+(`Land Change/data/ee_landfrac/`). NO2 noise comes from the TNAQ export. Tuning years are 2019–2023 only.
+
+| Pooled | cities | pairs | signal sd(dL) | noise sd | sd(dNO2 resid) | N_eff | **MDE %/pp** | needs signal sd ≥ |
 |---|---|---|---|---|---|---|---|---|
-| consecutive years | 4,456 | 18.5 pp | 32.3 | **0** | **−0.99** | 7.8 % | 539 | **1.9 pp/yr** |
-| without 2020 | 2,228 | 15.1 | 21.7 | 0 | | 7.4 % | 323 | 2.3 pp/yr |
-| without 2021→22 | 3,342 | 19.2 | 33.6 | 0 | | 8.3 % | 363 | 2.4 pp/yr |
-| one 2019→2023 difference | 1,114 | 24.3 | 46.7 | 0 | | 6.6 % | 155 | **3.0 pp over 4 yr** |
+| 1 km TNAQ proxy, year pairs | 9 | 4,456 | 0 | 32.3 | 7.8 % | 539 | ∞ | 1.9 |
+| Dynamic World, year pairs | 9 | 4,456 | 0.68 | 1.24 | 7.8 % | 539 | 1.39 | 1.9 |
+| Dynamic World, 2019→2023 | 9 | 1,114 | 2.32 | 1.18 | 6.6 % | 155 | **0.64** | 3.0 |
+| Dynamic World, year pairs | 18 | 8,908 | 0 | 1.90 | 7.1 % | 1,328 | ∞ | 1.1 |
+| Dynamic World, 2019→2023 | 18 | 2,227 | 1.40 | 1.98 | 6.7 % | 333 | **0.73** | 2.05 |
+| *sensitivity:* city-weighted, 2019→2023 | 18 | 2,227 | | | | | *0.45* | |
+| *sensitivity:* city-weighted, 2019→2023 | 9 | 1,114 | | | | | *0.58* | |
 
-**The 1 km "built-up" dL is greenness, not land use.**
-- Within city-year it correlates −0.99 with the vegetation change.
-- Its negative side (built-up loss, which is rare in reality) is larger than the whole spread, so no signal remains after removing classification noise.
-- From 2019 to 2023, "built-up" falls by more than 30 pp almost everywhere, because the 2019 dry season was a drought year (`fig_g1_cumulative_dL_maps.png`).
+What this says:
+1. **The 1 km proxy is unusable.** Its dL correlates −0.99 with the vegetation change, so it is drought and greenness, not land use. That's why I went to Earth Engine.
+2. **Dynamic World shows real, slow urban growth.** Mean built-up change is +0.4 to +0.9 pp per year. Over 2019→2023 the median block gains +1.4 pp and the 95th percentile +7 pp. The fast growers are Tiruppur, Coimbatore, Karur, Hosur, Dindigul and Salem (median +2.5 to +4.6 pp). Built-up gain comes at the expense of vegetation (correlation −0.7 to −0.99), as it should.
+3. **Year-to-year pairs can't work.** One year of growth is smaller than the Dynamic World label noise. Only the long difference has signal.
+4. **Adding cities doesn't help by itself.** It took me from 9 to 18 cities, and the pooled MDE got worse (0.64 → 0.73). The new boxes mostly don't grow (Thanjavur, Tiruvannamalai, Nagapattinam: signal 0), and their label noise raises the pooled noise estimate. Weighting cities by their own precision gives 0.45 (18 cities), which would pass. That is a sensitivity only: the gate as defined is the pooled one, and switching estimators after seeing the result would be a forking path. **Decide in the ADR which estimator is G1, before anything about the slope is looked at.**
+5. **Chennai alone is hopeless.** Its MDE is 3.0 %/pp: strong spatial correlation (ρ 0.82) leaves N_eff = 10.
+6. The assumed effect of 0.5 %/pp is a placeholder. With 1.0 %/pp, the 9- and 18-city long differences both pass.
 
-A first version of G1 that used the raw sd(dL) reported PASS (MDE 0.05 %/pp). That result was spurious, and it's why G1 now subtracts the noise.
+Box fix: Coimbatore's and Tiruppur's boxes overlapped in the first run (their centres are only 0.37° apart). Tiruppur now
+sits 12 km east, and a test enforces that no two boxes overlap. The 9-city rows above are from the first run.
 
-**What is measured, and holds independently of the proxy, is the NO2 side:**
-- the residual dNO2 noise after city-year fixed effects (5–16 % per city);
-- its spatial correlation between neighbouring blocks (ρ 0.6–0.9).
-
-From these, the last column gives the true built-up spread needed to detect 0.5 %/pp at 80 % power.
-
-**Chennai alone can't work.** It needs a true sd(dL) ≥ 15 pp per year, or ≥ 15.5 pp over 4 years, because its NO2 residual is noisy and strongly autocorrelated (N_eff 23). Pooled, the 9 cities need ≈ 2 pp per year or ≈ 3 pp over 4 years. Peri-urban growth of a few pp over 4 years per 4 km block is plausible on the urban fringe but not across whole boxes. So the long difference, 9+ cities and a phenology-robust built-up layer together might pass, and the real 20 m / 10 m dL decides. **Recommendation:** keep all nine cities and add more if the EE dL spread is below the threshold; use the long difference rather than year-to-year pairs; use Dynamic World (`--classifier dynamicworld`) rather than an NDBI rule.
-
-## What still needs credentials (not run, nothing was downloaded)
+## Still to do (needs your accounts)
 
 | Step | Script | Needs |
 |---|---|---|
-| Exact processor versions | `uv run --with earthengine-api python "Land Change/scripts/ee_s5p_versions.py" --project <gcp>` | Earth Engine account |
-| Real dL: same-season S2 SR 20 m (or Dynamic World 10 m) land fractions per block and year | `uv run --with earthengine-api python "Land Change/scripts/ee_s2_landfrac.py" --project <gcp> --years 2019 2020 2021 2022 2023 2024 2025 --classifier dynamicworld`, then download the CSVs into `Land Change/data/ee_landfrac/` and re-run `uv run aqf-land all` (it switches to them automatically) | Earth Engine + Google Drive |
+| ~~Exact processor versions~~ | **done** (`ee_s5p_versions.py --project airline-portal`) | |
+| ~~Real dL~~ | **done**: `ee_s2_landfrac.py --project airline-portal --years 2019 … 2025 --classifier dynamicworld --direct` | |
 | ERA5 per year, padded box, overpass hours → scalars per city and window | `uv run --with cdsapi python "Land Change/scripts/cds_era5.py" download`, then `uv run --with xarray --with netcdf4 python "Land Change/scripts/cds_era5.py" reduce` | CDS account, `~/.cdsapirc`, ERA5 licence accepted |
 | 2025 test year (NO2 + S2) | `AirQ/Scripts/Data_acquisition.js` with `END_DATE = '2025-12-31'`, `YEAR_FILTER = 2025` | Earth Engine Code Editor |
 

@@ -32,7 +32,7 @@ def main() -> None:
            .filterDate(args.start, args.end))
     names = ee.Image(col.first()).propertyNames().getInfo()
     print("image properties:", sorted(names))
-    keys = [k for k in names if "VERSION" in k.upper() or "PROCESSOR" in k.upper() or k.upper() == "PRODUCT_ID"]
+    keys = [k for k in names if not k.startswith("system:") and ("VERSION" in k.upper() or "PROCESSOR" in k.upper() or k.upper() == "PRODUCT_ID")]
     rows = []
     for month in pd.date_range(args.start, args.end, freq="MS")[:-1]:
         sub = col.filterDate(month.strftime("%Y-%m-%d"), (month + pd.offsets.MonthBegin()).strftime("%Y-%m-%d"))

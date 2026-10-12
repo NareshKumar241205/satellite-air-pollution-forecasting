@@ -29,10 +29,21 @@ cities:
   Madurai: [9.93, 78.12]
   Tiruchirappalli: [10.80, 78.69]
   Salem: [11.66, 78.15]
-  Tiruppur: [11.11, 77.34]
+  Tiruppur: [11.11, 77.46]           # shifted 12 km east: at 77.34 its box overlapped Coimbatore
   Hosur: [12.74, 77.83]
   Vellore: [12.92, 79.13]
   Thoothukudi: [8.79, 78.13]
+  # Added after G1 on the 10 m Dynamic World dL (MDE 0.64 %/pp with 9 cities, needs ~1.6x the pixels). Every box
+  # that doesn't overlap an earlier one; Thanjavur and Dindigul are shifted 4-6 km to avoid Trichy and Madurai.
+  Kanchipuram: [12.83, 79.70]
+  Cuddalore: [11.75, 79.75]
+  Thanjavur: [10.79, 79.18]
+  Dindigul: [10.42, 77.98]
+  Karur: [10.96, 78.08]
+  Tiruvannamalai: [12.23, 79.07]
+  Nagapattinam: [10.77, 79.84]
+  Sivakasi: [9.45, 77.80]
+  Ramanathapuram: [9.37, 78.83]
 
 # Same season for both clocks: Jan-Apr is the driest, least cloudy part of the year in Tamil Nadu, after the NE
 # monsoon. It is present in every year 2019-2024 of the local S2 export (2023 has only 3 April windows).
