@@ -28,20 +28,23 @@ def load_land_config(path: Path | str = ROOT / "configs/land.yaml") -> dict:
     with open(path) as f:
         cfg = yaml.safe_load(f)
     cfg["tnaq"]["dir"] = (ROOT / cfg["tnaq"]["dir"]).resolve()
+    cfg["tnaq"]["extra_dirs"] = [(ROOT / d).resolve() for d in cfg["tnaq"].get("extra_dirs", [])]
     cfg["outputs"] = ROOT / cfg["outputs"]
     cfg["processed"] = ROOT / "data/processed"
     return cfg
 
 
 def list_files(cfg: dict, product: str) -> pd.DataFrame:
-    """One row per window file: date (window start), year, month, path. Sorted by date."""
-    d = cfg["tnaq"]["dir"] / cfg["tnaq"]["products"][product]
-    rows = []
-    for p in sorted(d.glob("*.tif")):
-        m = re.search(r"_(\d{8})\.tif$", p.name)
-        if m:
-            rows.append((pd.Timestamp(m.group(1)), p))
-    df = pd.DataFrame(rows, columns=["date", "path"])
+    """One row per window file: date (window start), year, month, path. Sorted by date. The main export wins
+    over an extra directory for the same window."""
+    sub = cfg["tnaq"]["products"][product]
+    found = {}
+    for d in [cfg["tnaq"]["dir"], *cfg["tnaq"].get("extra_dirs", [])]:
+        for p in sorted((d / sub).glob("*.tif")):
+            m = re.search(r"_(\d{8})\.tif$", p.name)
+            if m:
+                found.setdefault(pd.Timestamp(m.group(1)), p)
+    df = pd.DataFrame(sorted(found.items()), columns=["date", "path"])
     df["year"], df["month"] = df.date.dt.year, df.date.dt.month
     return df
 

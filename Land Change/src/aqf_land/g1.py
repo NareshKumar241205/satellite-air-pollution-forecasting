@@ -58,7 +58,7 @@ def power_row(df: pd.DataFrame, cfg: dict) -> dict:
     n_eff = len(d) * (1 - rho) / (1 + rho) if np.isfinite(rho) and rho > 0 else len(d)
     z = norm.ppf(1 - g1["alpha"] / 2) + norm.ppf(g1["power"])
     sd_e, sd_l = d.e.std(ddof=1), d.dL_w.std(ddof=1)
-    neg = d.dL[d.dL < 0]
+    neg = d.dL[d.dL < -1e-9]                      # exact zeros can come out as -1e-17 from float sums
     noise_var = float((neg ** 2).mean()) if len(neg) else 0.0
     sd_signal = float(np.sqrt(max(sd_l ** 2 - noise_var, 0.0)))
     mde = z * sd_e / (sd_signal * np.sqrt(n_eff)) if sd_signal > 0 else np.inf

@@ -38,9 +38,11 @@ uv run pytest -q "Land Change/tests"
 The local files don't record the version, so I queried `PROCESSOR_VERSION` from Earth Engine (project
 `airline-portal`; `ee_processor_versions.csv`, by month). The Jan–Apr season of each year uses:
 
-| Season | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
-|---|---|---|---|---|---|---|
-| Processor | 1.2.2 → 1.3.0/1.3.1 | 1.3.2 | 1.4.0 | 2.3.1 | 2.4.0 → 2.5.0 | 2.6.0 |
+| Season | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 (test) |
+|---|---|---|---|---|---|---|---|
+| Processor | 1.2.2 → 1.3.0/1.3.1 | 1.3.2 | 1.4.0 | 2.3.1 | 2.4.0 → 2.5.0 | 2.6.0 | 2.8.0 |
+
+v2.9.1 ("02.09.01") starts in November 2025. December 2025 also has one image labelled `03.00.DV`, which looks like a development build; it's outside the Jan–Apr season.
 
 - **Every season is a different processor, and v1 → v2 (v2.2.0, July 2021) falls between 2021 and 2022.**
 - The NO2 data shows no visible step at that pair: the mean across cities is −1.6 %, while other pairs range from −22 % (lockdown) to +16 %. Its level dependence matches every other pair.
@@ -79,7 +81,7 @@ sits 12 km east, and a test enforces that no two boxes overlap. The 9-city rows 
 | ~~Exact processor versions~~ | **done** (`ee_s5p_versions.py --project airline-portal`) | |
 | ~~Real dL~~ | **done**: `ee_s2_landfrac.py --project airline-portal --years 2019 … 2025 --classifier dynamicworld --direct` | |
 | ERA5 per year, padded box, overpass hours → scalars per city and window | `uv run --with cdsapi python "Land Change/scripts/cds_era5.py" download`, then `uv run --with xarray --with netcdf4 python "Land Change/scripts/cds_era5.py" reduce` | CDS account, `~/.cdsapirc`, ERA5 licence accepted |
-| 2025 test year (NO2 + S2) | `AirQ/Scripts/Data_acquisition.js` with `END_DATE = '2025-12-31'`, `YEAR_FILTER = 2025` | Earth Engine Code Editor |
+| ~~2025 test-year NO2~~ | **done**: `ee_s5p_no2_windows.py --project airline-portal --year 2025`. 73 windows went to `data/tnaq_extra/` (22 MB), not `Dataset/`. Same method as the TNAQ export: `--check` on 2021-07-04 and 2024-01-05 reproduced the local files bit for bit (same mask, max diff 0). 2025 is loaded but not used by any step yet; it's for the final scoring only. | |
 
 The ERA5 reducer was tested end-to-end on a synthetic NetCDF only; no ERA5 data exists on this machine.
 

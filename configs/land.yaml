@@ -10,6 +10,9 @@ outputs: "Land Change/results"
 tnaq:
   dir: ../Dataset/Raw
   acquisition_script: ../AirQ/Scripts/Data_acquisition.js   # how the export was made (read-only)
+  # Windows added later with Land Change/scripts/ee_s5p_no2_windows.py (same method, bit-identical on two checked
+  # 2021/2024 windows). The 2025 test year lives here, never in Dataset/.
+  extra_dirs: [data/tnaq_extra]
   nodata: -9999.0
   products: {NO2: TNAQ_S5P_NO2, S2: TNAQ_S2}
   s2_bands: [blue, green, red, nir, swir1, swir2]   # reflectance 0..1. 2018 is S2 TOA, not SR: never used.

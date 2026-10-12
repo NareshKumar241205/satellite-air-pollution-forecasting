@@ -37,6 +37,7 @@ TIMELINE = [
     ("2023-11-26", "2.6.0"),
     ("2024-09-08", "2.7.1"),
     ("2024-11-16", "2.8.0"),
+    ("2025-11-12", "2.9.1"),   # labelled 02.09.01 in Earth Engine; Dec 2025 also has one image labelled 03.00.DV
 ]
 V2_START = pd.Timestamp("2021-07-01")
 
