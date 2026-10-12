@@ -127,3 +127,41 @@ def land_from_csv(csv_dir, city: str, shape: tuple[int, int], years: list[int],
             a[k, d.row[ok], d.col[ok]] = d[c][ok]
         out[y] = a
     return out
+
+
+ALT_LAYERS = {
+    # name: (data dir, file prefix, column, trailing window in years); see Land Change/DIAGNOSTICS_PLAN.md
+    "dw_prob_trail3": ("data/ee_dwprob", "dwprob", "built_prob", 3),
+    "obt": ("data/ee_obt", "obt", "building_presence", 1),
+}
+
+
+def land_from_layer(root, layer: str, city: str, shape: tuple[int, int], years: list[int]) -> dict[int, np.ndarray]:
+    """{year: (C, Hb, Wb)} with only the built-up channel filled from an alternative layer. A trailing window takes
+    the median of years y-w+1 .. y (never later years, so L(t) can't contain L(t+1))."""
+    d, prefix, col, w = ALT_LAYERS[layer]
+    cache: dict[int, np.ndarray] = {}
+
+    def year_grid(y: int) -> np.ndarray:
+        if y not in cache:
+            g = np.full(shape, np.nan)
+            f = root / d / f"{prefix}_{y}.csv"
+            if f.exists():
+                t = pd.read_csv(f)
+                t = t[(t.city == city) & t[col].notna()]
+                g[t.row, t.col] = t[col]
+            cache[y] = g
+        return cache[y]
+
+    out = {}
+    for y in years:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            stack = np.stack([year_grid(k) for k in range(y - w + 1, y + 1)])
+            v = np.nanmedian(stack, 0) if w > 1 else stack[0]
+        if w > 1:
+            v[np.isfinite(stack).sum(0) < w] = np.nan                    # need the full trailing window
+        a = np.full((len(CLASSES), *shape), np.nan)
+        a[CLASSES.index("builtup")] = v
+        out[y] = a
+    return out

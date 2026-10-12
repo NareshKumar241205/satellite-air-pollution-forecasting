@@ -71,7 +71,7 @@ def provenance(cfg: dict, pairs: pd.DataFrame | None = None) -> None:
 
 
 def layers(cfg: dict, no2: dict, s2: dict) -> pd.DataFrame:
-    from aqf_land.layers import CLASSES, land_fractions, land_from_csv, no2_seasonal, pair_table
+    from aqf_land.layers import ALT_LAYERS, CLASSES, land_fractions, land_from_csv, land_from_layer, no2_seasonal, pair_table
     from aqf_land.tnaq import block_lat_lon
 
     out = cfg["outputs"] / "P1_layers"
@@ -84,8 +84,13 @@ def layers(cfg: dict, no2: dict, s2: dict) -> pd.DataFrame:
     for box in no2["boxes"]:
         c = box.city
         lat, lon = block_lat_lon(box, no2["transform"], cfg["grid"]["block"])
-        land = land_from_csv(ee_dir, c, (len(lat), len(lon)), years, cfg["grid"]["min_valid_frac"])
-        sources[c] = ee_label if land is not None else "provisional 1 km TNAQ S2"
+        layer = cfg.get("land_layer", "dw_label")
+        if layer in ALT_LAYERS:
+            land = land_from_layer(ROOT, layer, c, (len(lat), len(lon)), years)
+            sources[c] = f"alternative layer {layer} {ALT_LAYERS[layer]}"
+        else:
+            land = land_from_csv(ee_dir, c, (len(lat), len(lon)), years, cfg["grid"]["min_valid_frac"])
+            sources[c] = ee_label if land is not None else "provisional 1 km TNAQ S2"
         if land is None:
             land = land_fractions(s2[c], s2["dates"], years, cfg)
         n = no2_seasonal(no2[c], no2["dates"], years, cfg)
@@ -215,6 +220,41 @@ def panel(cfg: dict, n_boot: int = 500, n_placebo: int = 500) -> None:
     (out / "C2_PANEL_EXPLORATORY.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def diagnostics(cfg: dict) -> None:
+    from aqf_land import diag
+    from aqf_land import panel as pn
+    from aqf_land.layers import CLASSES
+
+    out = cfg["outputs"] / "D_lead_diagnostics"
+    out.mkdir(parents=True, exist_ok=True)
+    z = np.load(cfg["outputs"] / "P1_layers" / "land_fractions_no2_season.npz")
+    tune = cfg["years"]["tuning"]
+    p = pn.build_panel(z, list(cfg["cities"]), tune, CLASSES.index(cfg["dL_class"]))
+    parts = ["# Lead-test diagnostics (plan: `Land Change/DIAGNOSTICS_PLAN.md`)", ""]
+    cov_dir = ROOT / "data/ee_covariates"
+    if any(cov_dir.glob("covariates_*.csv")):
+        cov = pd.concat([pd.read_csv(f) for f in sorted(cov_dir.glob("covariates_*.csv"))])
+        d1 = diag.d1_covariates(p, cov)
+        d1.to_csv(out / "D1_covariates.csv", index=False)
+        piv = d1.pivot(index="covariate", columns="with", values="r_within_site_year").round(3)
+        parts += ["## D1: scene/atmosphere covariates (within site-year r)", "", piv.to_markdown(), ""]
+    d2 = diag.d2_level_dependence(p)
+    d3 = diag.d3_pixel_trends(p)
+    d4 = diag.d4_leave_one_out(p)
+    d5 = diag.d5_drop_edges(p)
+    d6 = diag.d6_spatial(p)
+    for name, obj in (("D2", d2), ("D4", d4)):
+        obj.to_csv(out / f"{name}.csv", index=False)
+    (out / "D3_D5_D6.json").write_text(json.dumps({"D3": d3, "D5": d5, "D6": d6}, indent=2))
+    parts += ["## D2: level dependence of the yearly label change (within site)", "", d2.round(3).to_markdown(index=False),
+              "", "## D3: pixel-specific linear trends", "", f"`{json.dumps({k: (round(v, 3) if isinstance(v, float) else v) for k, v in d3.items()})}`",
+              "", "## D4: leave one out (lead coefficient)", "", d4.round(3).to_markdown(index=False), "",
+              "## D5: drop the outer ring of blocks", "", f"`{json.dumps({k: round(v, 3) for k, v in d5.items()})}`", "",
+              "## D6: residual spatial structure", "", f"`{json.dumps({k: round(v, 3) for k, v in d6.items()})}`"]
+    (out / "DIAGNOSTICS.md").write_text("\n".join(parts) + "\n", encoding="utf-8")
+    log.info("diagnostics -> %s", out)
+
+
 def _g1_figures(cfg: dict, pairs: pd.DataFrame, out) -> None:
     import matplotlib
 
@@ -262,11 +302,14 @@ def _g1_figures(cfg: dict, pairs: pd.DataFrame, out) -> None:
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="aqf-land", description=__doc__)
     ap.add_argument("--force", action="store_true", help="re-read the TNAQ GeoTIFFs instead of the cache")
+    ap.add_argument("--layer", default="dw_label", help="built-up layer: dw_label (default), dw_prob_trail3 or obt; "
+                    "alternatives write to Land Change/results/layers/<layer>/")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("cache", help="read the city boxes from every TNAQ NO2 and S2 file into data/processed/")
     sub.add_parser("provenance", help="TROPOMI processor versions: what the local export records")
     sub.add_parser("layers", help="yearly land fractions, same-season NO2, per-pixel year-pair table")
     sub.add_parser("g1", help="gate G1: dL distribution and power over the 12x12 pixels (tuning years only)")
+    sub.add_parser("diag", help="lead-test diagnostics D1-D6 (Land Change/DIAGNOSTICS_PLAN.md)")
     sub.add_parser("panel", help="C2 panel, EXPLORATORY: two-way FE + SLX, block bootstrap, placebo, lead/lag")
     sub.add_parser("all", help="cache, layers, provenance, g1")
     args = ap.parse_args(argv)
@@ -276,6 +319,12 @@ def main(argv: list[str] | None = None) -> None:
     from aqf_land.tnaq import load_land_config
 
     cfg = load_land_config()
+    if args.layer != "dw_label":
+        cfg["land_layer"] = args.layer
+        cfg["outputs"] = cfg["outputs"] / "layers" / args.layer
+    if args.cmd == "diag":
+        diagnostics(cfg)
+        return
     if args.cmd == "panel":
         panel(cfg)
         return

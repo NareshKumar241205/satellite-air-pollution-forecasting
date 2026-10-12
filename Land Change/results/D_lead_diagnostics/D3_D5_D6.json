@@ -1,0 +1,19 @@
+{
+  "D3": {
+    "lead_with_pixel_trends": 0.10970461645384313,
+    "L": -0.014698662666156746,
+    "n": 6681,
+    "note": "outcomes 2020-2022: 3 periods per pixel, so 1 residual df per pixel after a pixel trend"
+  },
+  "D5": {
+    "lead_full": 0.3081971725647154,
+    "lead_inner": 0.27314705166535014,
+    "change_pct": -11.37262895947088
+  },
+  "D6": {
+    "e_y~e_y": 0.7242350099807113,
+    "e_lead~e_lead": 0.48318472058487166,
+    "e_y~e_lead(neighbour)": 0.02266903893583906,
+    "e_y~e_lead(same pixel)": 1.4058771755184526e-18
+  }
+}
