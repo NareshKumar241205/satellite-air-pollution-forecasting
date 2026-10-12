@@ -58,7 +58,14 @@ def covariates(y, months, region):
     return ee.Image.cat([n_dw, cloud, aod.unmask(), s2.median()]), 100
 
 
-WHAT = {"dwprob": dwprob, "obt": obt, "covariates": covariates}
+def viirs(y, months, region):
+    """Annual VIIRS night-time lights (X4). V2.1 covers 2013-2021, V2.2 2022 on; no season (annual product)."""
+    name = "NOAA/VIIRS/DNB/ANNUAL_V21" if y <= 2021 else "NOAA/VIIRS/DNB/ANNUAL_V22"
+    img = ee.ImageCollection(name).filter(ee.Filter.calendarRange(y, y, "year")).first()
+    return ee.Image(img).select(["average_masked"]).rename("rad"), 500
+
+
+WHAT = {"dwprob": dwprob, "obt": obt, "covariates": covariates, "viirs": viirs}
 
 
 def fetch(img: ee.Image, blocks: ee.FeatureCollection, scale: float, y: int) -> list[dict]:

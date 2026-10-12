@@ -19,6 +19,7 @@ Branch `adr-001-phase1`. The original plan text (`plans/adr_001_dual_clock_land_
 | C3–E | NO2 forecast ladder, fusion, 2025 test | Done, 2025 scored once | `results/C3_forecast/` |
 | G | CO and SO2 (land check, forecast, 2025 test) | Done, each scored once | `results/gas/` |
 | F | Reports, chapter draft, README, deck, figures | Done | `docs/`, `results/figures/` |
+| X1–X5 | Lockdown-free window, CNN check, band recalibration, night lights, climate indices | Done; none adopted (see `FINAL_REPORT.md` §4c) | `EXTENSIONS_PLAN.md`, `results/` |
 | Push | Branch pushed, pull request into `main` | Branch pushed; **pull request not opened** (no `gh` login) | see §4 |
 
 ## 2. Frozen decisions (don't change after seeing results)
@@ -52,7 +53,9 @@ Branch `adr-001-phase1`. The original plan text (`plans/adr_001_dual_clock_land_
 2. **Fill the deck cover placeholders** (name, register number, guide, date).
 3. **Read the chapter draft** (`docs/THESIS_CHAPTER_DRAFT.md`) and tell me what your guide wants changed in framing. The honest headline is "no land→NO2 effect above 0.73 %/pp is detectable; NO2 is forecastable only in the next window, CO more so".
 
-**Optional improvements (each is a new, pre-registered step, never tuned on 2025):**
+**Optional improvements.** Done (12 Oct–13 Oct): the lockdown-free window, the CNN check, band recalibration, night lights and climate indices, none adopted. Still open:
+
+**Original optional list, for reference (each a new, pre-registered step, never tuned on 2025):**
 
 | Item | Effort | What it would change |
 |---|---|---|

@@ -133,7 +133,11 @@ ALT_LAYERS = {
     # name: (data dir, file prefix, column, trailing window in years); see Land Change/DIAGNOSTICS_PLAN.md
     "dw_prob_trail3": ("data/ee_dwprob", "dwprob", "mean", 3),          # EE names a single-band mean "mean"
     "obt": ("data/ee_obt", "obt", "building_presence", 1),
+    # X4: night-time lights as an emission proxy. v = 0.1 ln(1 + radiance), so L = 100 v = 10 ln(1 + radiance)
+    # and a 1-unit change is about a 10 % change in lights.
+    "viirs_log": ("data/ee_viirs", "viirs", "mean", 1),
 }
+ALT_TRANSFORM = {"viirs_log": lambda v: 0.1 * np.log1p(np.maximum(v, 0))}
 
 
 def land_from_layer(root, layer: str, city: str, shape: tuple[int, int], years: list[int]) -> dict[int, np.ndarray]:
@@ -141,6 +145,7 @@ def land_from_layer(root, layer: str, city: str, shape: tuple[int, int], years: 
     the median of years y-w+1 .. y (never later years, so L(t) can't contain L(t+1))."""
     d, prefix, col, w = ALT_LAYERS[layer]
     cache: dict[int, np.ndarray] = {}
+    tf = ALT_TRANSFORM.get(layer)
 
     def year_grid(y: int) -> np.ndarray:
         if y not in cache:
@@ -149,7 +154,7 @@ def land_from_layer(root, layer: str, city: str, shape: tuple[int, int], years: 
             if f.exists():
                 t = pd.read_csv(f)
                 t = t[(t.city == city) & t[col].notna()]
-                g[t.row, t.col] = t[col]
+                g[t.row, t.col] = tf(t[col].to_numpy()) if tf else t[col]
             cache[y] = g
         return cache[y]
 

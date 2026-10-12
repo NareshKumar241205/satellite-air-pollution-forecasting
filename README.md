@@ -50,6 +50,7 @@ This phase covers land-use change → NO2 and a 5–150-day NO2 forecast on **18
 Results:
 - **No land→NO2 effect is detectable.** The detection limit is 0.73 % NO2 per pp of built-up gain, and the lead test is confounded by the 2020 lockdown. Land therefore enters the forecast with zero weight.
 - **Forecast skill (NO2):** the next-5-day forecast beats climatology by +9.4 % (validation) and +3.6 % (2025 test, scored once). Beyond 10 days, skill is ≈ 0.
+- **Extensions (X1–X5):** a lockdown-free window, a CNN, band recalibration, night lights and ENSO/IOD were tested; none was adopted ([`EXTENSIONS_PLAN.md`](<Land Change/EXTENSIONS_PLAN.md>)).
 - **Other gases:** CO +25.8 % on the 2025 test at the next window (and a precise land null, below ≈ 0.02 %/pp); SO2 has no skill. Use `--gas CO` or `--gas SO2` on `layers`, `g1`, `panel` and `forecast`.
 
 Plan and status: [`Land Change/PLAN.md`](<Land Change/PLAN.md>). Full write-up: [`docs/FINAL_REPORT.md`](docs/FINAL_REPORT.md). Thesis chapter draft: [`docs/THESIS_CHAPTER_DRAFT.md`](docs/THESIS_CHAPTER_DRAFT.md).

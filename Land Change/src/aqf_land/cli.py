@@ -219,7 +219,7 @@ def panel(cfg: dict, n_boot: int = 500, n_placebo: int = 500, exclude_outcome_ye
     if excl:
         head = f"POST-HOC DIAGNOSTIC D7, outcome years {list(excl)} removed (DIAGNOSTICS_PLAN.md addendum). " + head
     lines = [f"# C2 panel: {head}", "",
-             f"G1 detection limit (pooled long difference, 80 % power): **{mde_ld:.2f} % {cfg.get("gas", "NO2")} per pp**. "
+             f"G1 detection limit (pooled long difference, 80 % power): **{(f'{mde_ld:.2f}' if mde_ld is not None else 'not estimable (no real land signal after noise removal)')} % {cfg.get("gas", "NO2")} per pp**. "
              "Estimates below that size can't be told apart from zero by this design; a null here is not evidence of "
              "no effect.",
              f"Sites: {len(cfg['cities'])}, years {tune[0]}-{tune[-1]} (Jan-Apr). Spatial-block bootstrap: {n_boot} "
@@ -348,6 +348,8 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--force", action="store_true", help="re-read the TNAQ GeoTIFFs instead of the cache")
     ap.add_argument("--gas", default="NO2", choices=["NO2", "CO", "SO2"],
                     help="gas for layers/g1/panel/forecast; non-NO2 results go to Land Change/results/gas/<gas>/")
+    ap.add_argument("--window", type=int, nargs=2, metavar=("Y0", "Y1"),
+                    help="X1: use the years Y0..Y1 as the tuning window (e.g. 2021 2024); results go to a window_* folder")
     ap.add_argument("--layer", default="dw_label", help="built-up layer: dw_label (default), dw_prob_trail3 or obt; "
                     "alternatives write to Land Change/results/layers/<layer>/")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -355,6 +357,8 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("provenance", help="TROPOMI processor versions: what the local export records")
     sub.add_parser("layers", help="yearly land fractions, same-season NO2, per-pixel year-pair table")
     sub.add_parser("g1", help="gate G1: dL distribution and power over the 12x12 pixels (tuning years only)")
+    se = sub.add_parser("ext", help="extensions X2 (CNN), X3 (bands), X5 (climate indices); validation only")
+    se.add_argument("which", choices=["x2", "x3", "x5"])
     sub.add_parser("figures", help="report figures from the saved result tables")
     sub.add_parser("bdecision", help="apply decision rule B to the per-layer G1 and C2 results")
     sf = sub.add_parser("forecast", help="DECISION_RULES C-E: validation ladder, fusion, then the one-time 2025 test")
@@ -375,11 +379,19 @@ def main(argv: list[str] | None = None) -> None:
     if args.gas != "NO2":
         cfg["gas"] = args.gas
         cfg["outputs"] = cfg["outputs"] / "gas" / args.gas
+    if args.window:
+        cfg["years"]["tuning"] = list(range(args.window[0], args.window[1] + 1))
+        cfg["outputs"] = cfg["outputs"] / f"window_{args.window[0]}_{args.window[1]}"
     if args.layer != "dw_label":
         cfg["land_layer"] = args.layer
         cfg["outputs"] = cfg["outputs"] / "layers" / args.layer
     if args.cmd == "diag":
         diagnostics(cfg)
+        return
+    if args.cmd == "ext":
+        from aqf_land import extensions
+
+        {"x2": extensions.x2_cnn, "x3": extensions.x3_bands, "x5": extensions.x5_climate}[args.which](cfg)
         return
     if args.cmd == "figures":
         from aqf_land import figures

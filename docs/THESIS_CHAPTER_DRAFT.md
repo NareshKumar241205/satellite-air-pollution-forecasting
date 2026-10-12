@@ -95,6 +95,16 @@ The same sites, models and rules were applied to CO and SO2, with land weight ag
 - **SO2.** No model improved on climatology (validation skill −0.7 % to 0.0 %), so the climatology is the forecast. SO2 retrievals are noisy and its signal comes mainly from point sources.
 - **Land change.** CO's land design was well powered (detectable effect 0.13 % per point) and showed a clean null: any effect is below about 0.02 % per point, which is expected for a smooth, background-dominated gas. SO2's design could detect only effects above 4.7 % per point and so is uninformative. These land checks were exploratory and did not alter the land weight.
 
+## X.4c Additional analyses
+
+Five further analyses were specified in advance and run as exploratory or validation-only checks; none changed a decision.
+
+- **A lockdown-free land window (2021→2024)** was less powerful than the main one (detectable effect 1.29 % per point), so the planned confirmatory run on 2025 was not carried out.
+- **A small convolutional network** did not beat ridge regression on validation (NO2 +8.4 % against +9.4 %; CO +13.6 % against +16.3 %), and it overfitted within a few epochs.
+- **Recalibrating the uncertainty bands** by pixel did not change coverage. CO's bands covered 86 % of 2024 values but only 74 % of 2025 values, so the shortfall comes from year-to-year changes in variability.
+- **Night-time lights**, used as an emission proxy, gave a small, non-significant own-block effect (+0.11 % NO2 per 10 % increase in light, CI −0.04 to 0.25) and a positive effect of neighbouring blocks' lights (+0.93, CI 0.29 to 1.52). The latter is a hypothesis for later data, not a finding.
+- **ENSO and Indian Ocean Dipole indices** gave no long-lead skill: they were worse than climatology on validation for all three gases.
+
 ## X.5 Discussion
 
 The negative land result has three likely causes:

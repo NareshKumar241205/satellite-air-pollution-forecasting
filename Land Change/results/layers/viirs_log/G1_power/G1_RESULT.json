@@ -1,0 +1,113 @@
+{
+  "passes": false,
+  "effect_pct_per_pp": 0.5,
+  "tuning_years": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "cities": [
+    "Chennai",
+    "Coimbatore",
+    "Madurai",
+    "Tiruchirappalli",
+    "Salem",
+    "Tiruppur",
+    "Hosur",
+    "Vellore",
+    "Thoothukudi",
+    "Kanchipuram",
+    "Cuddalore",
+    "Thanjavur",
+    "Dindigul",
+    "Karur",
+    "Tiruvannamalai",
+    "Nagapattinam",
+    "Sivakasi",
+    "Ramanathapuram"
+  ],
+  "dL_source": {
+    "Chennai": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Coimbatore": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Madurai": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Tiruchirappalli": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Salem": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Tiruppur": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Hosur": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Vellore": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Thoothukudi": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Kanchipuram": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Cuddalore": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Thanjavur": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Dindigul": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Karur": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Tiruvannamalai": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Nagapattinam": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Sivakasi": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Ramanathapuram": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)"
+  },
+  "pooled": {
+    "all_tuning_pairs": {
+      "n": 8908,
+      "dL_sd_within": 0.6229845607,
+      "dL_noise_sd": 0.5426905899,
+      "dL_signal_sd": 0.3059357555,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 7.0859760353,
+      "n_eff": 1327.6899571461,
+      "mde_pct_per_pp": 1.7808401737,
+      "sd_required_pp": 1.0896453681,
+      "passes": false
+    },
+    "no_lockdown_year": {
+      "n": 4454,
+      "dL_sd_within": 0.6390343489,
+      "dL_noise_sd": 0.5918011215,
+      "dL_signal_sd": 0.2411147687,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 6.7472859681,
+      "n_eff": 799.1703699615,
+      "mde_pct_per_pp": 2.7732527679,
+      "sd_required_pp": 1.3373443993,
+      "passes": false
+    },
+    "no_v1_v2_pair": {
+      "n": 6681,
+      "dL_sd_within": 0.6140190654,
+      "dL_noise_sd": 0.5375536818,
+      "dL_signal_sd": 0.2967413889,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 7.332161451,
+      "n_eff": 914.0761691479,
+      "mde_pct_per_pp": 2.2896364924,
+      "sd_required_pp": 1.3588598257,
+      "passes": false
+    },
+    "long_2019_2023": {
+      "n": 2227,
+      "dL_sd_within": 1.3251596846,
+      "dL_noise_sd": 1.9843410012,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": null,
+      "dNO2_resid_sd": 6.6606242741,
+      "n_eff": 332.6935844058,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 2.0460985881,
+      "passes": false
+    }
+  },
+  "sensitivity_city_weighted_mde": {
+    "all_tuning_pairs": 1.0170156774570256,
+    "no_lockdown_year": 1.2574374561354904,
+    "no_v1_v2_pair": 1.1457059352146541,
+    "long_2019_2023": 0.7295334499405736
+  },
+  "gate": {
+    "design": "pooled long difference",
+    "passes_at_0.5_pct_per_pp": false,
+    "passes_at_1_pct_per_pp": false
+  },
+  "note": "passes uses the pooled MDE (the gate as defined); the city-weighted MDE is a sensitivity only"
+}

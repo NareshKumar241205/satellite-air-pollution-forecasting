@@ -1,0 +1,14 @@
+{
+  "gas": "NO2",
+  "status": "run: best epoch 4, validation MSE 95.411",
+  "cnn_skill": 0.08360726187065126,
+  "cnn_ci": [
+    0.05241568939349878,
+    0.11467536385994744
+  ],
+  "ridge_skill": 0.0937782474490851,
+  "chosen_model": "ridge",
+  "chosen_skill": 0.0937782474490851,
+  "cnn_beats_chosen": false,
+  "reading": "validation only; the recorded 2025 score stands. If the CNN wins, test deferred to 2026."
+}

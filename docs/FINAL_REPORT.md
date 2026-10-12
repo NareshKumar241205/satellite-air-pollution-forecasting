@@ -188,6 +188,23 @@ Same sites, blocks, splits, features and models. Land weight stays 0 for both ga
 - **SO2** can detect only effects above about 4.7 %/pp, so its null says nothing.
 - In the CO panel the previous year's land (L_lag) is positive and significant (+0.052 [0.010, 0.085]). It isn't part of the pre-set clean criterion, and it is reported here for completeness.
 
+## 4c. Extensions X1–X5 (rules frozen in `Land Change/EXTENSIONS_PLAN.md` before any result)
+
+All are exploratory or validation-only. None re-opens a frozen decision, and none reads 2025 results or re-scores 2025.
+
+| Step | Result | Verdict |
+|---|---|---|
+| **X1. Lockdown-free window 2021→2024** | Detectable effect **1.29 %/pp** (signal sd 0.96 pt vs noise 1.7). Own effect −0.056 [−0.13, 0.03]; long difference −0.19 [−0.32, −0.05] raw, −0.11 [−0.26, 0.06] deweathered; lead +0.16 [−0.09, 0.44] raw, but **+0.45 [0.14, 0.71] deweathered** | G1b fails at both 0.5 and 1.0. By the rule, the confirmatory 2021→2025 run is **not executed**. The v1→v2 processor step lies inside this window |
+| **X2. Small CNN (validation)** | NO2 +8.4 % [5.2, 11.5] against Ridge +9.4 %; CO +13.6 % [3.6, 24.1] against Ridge +16.3 %. It overfits fast (best epoch 4 and 2) | Not adopted; recorded 2025 scores stand |
+| **X3. Interval recalibration** | On 2024, bands fitted on 2023: lead-1 coverage with global quantiles / pixel-scaled quantiles is NO2 0.794 / 0.794, CO 0.859 / 0.859, SO2 0.799 / 0.799 | Not adopted (better for 1 of 3 gases, needed 2). Pixel scaling isn't the issue: CO covered 0.86 in 2024 but 0.74 in 2025, so variance shifts by year |
+| **X4. Night-time lights (emission proxy)** | Own effect +0.11 [−0.04, 0.25] % NO2 per 10 % more light; long difference +0.08 [−0.08, 0.23]; lead +0.25 [−0.25, 0.59], clean; **neighbour +0.93 [0.29, 1.52]**. Deweathered is similar. Optimistic detection limit 0.77 % per 10 % light | Own effect inconclusive; a positive neighbour term is a hypothesis for 2026, not a result |
+| **X5. ENSO and IOD for long leads** | Mean skill over leads 2–30: NO2 **−3.1 %** [−5.6, −0.3], CO −1.7 % [−5.4, 1.4], SO2 −1.3 % [−2.1, −0.6]. Damped persistence: +0.35 %, +0.14 %, −0.02 % | Worse than climatology; not adopted |
+
+Notes:
+- **X4 caveat.** VIIRS annual V2.1 (2019–2021) and V2.2 (2022 on) are joined, and the radiance step at 2021→22 (+0.9 against +0.4 per year before) is a product-version change that year effects absorb. The G1 noise rule assumes land change only grows, which isn't true for lights, so its "signal sd" is not estimable and I report the unadjusted spread as an optimistic bound.
+- **Bootstrap CIs against G1 limits.** The panel CIs (about ±0.1–0.2) are tighter than the G1 limits (0.7–1.3) because the panel uses all year pairs while G1 is the conservative long-difference bound with a land-noise deduction. G1 stays the gate.
+- **Not run:** the consistent NO2 reprocessing (needs a Copernicus account and ~300 GB).
+
 ## 5. Figures
 
 Figures are in `Land Change/results/figures/`:

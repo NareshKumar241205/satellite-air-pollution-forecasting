@@ -1,0 +1,44 @@
+{
+  "season_months": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "years": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2024
+  ],
+  "grid_deg": 0.04,
+  "dL_class": "builtup",
+  "classes": {
+    "water": "MNDWI > 0",
+    "vegetation": "NDVI >= 0.3",
+    "builtup": "NDBI > 0",
+    "other": "rest"
+  },
+  "land_source": {
+    "Chennai": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Coimbatore": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Madurai": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Tiruchirappalli": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Salem": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Tiruppur": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Hosur": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Vellore": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Thoothukudi": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Kanchipuram": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Cuddalore": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Thanjavur": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Dindigul": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Karur": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Tiruvannamalai": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Nagapattinam": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Sivakasi": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Ramanathapuram": "Earth Engine Dynamic World V1, same-season mode label, 10 m"
+  },
+  "note": "The 1 km proxy moves a block fraction in 6.25 pp steps and tracks greenness (see G1)."
+}

@@ -1,0 +1,45 @@
+{
+  "season_months": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "years": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "grid_deg": 0.04,
+  "dL_class": "builtup",
+  "classes": {
+    "water": "MNDWI > 0",
+    "vegetation": "NDVI >= 0.3",
+    "builtup": "NDBI > 0",
+    "other": "rest"
+  },
+  "land_source": {
+    "Chennai": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Coimbatore": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Madurai": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Tiruchirappalli": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Salem": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Tiruppur": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Hosur": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Vellore": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Thoothukudi": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Kanchipuram": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Cuddalore": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Thanjavur": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Dindigul": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Karur": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Tiruvannamalai": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Nagapattinam": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Sivakasi": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)",
+    "Ramanathapuram": "alternative layer viirs_log ('data/ee_viirs', 'viirs', 'mean', 1)"
+  },
+  "note": "The 1 km proxy moves a block fraction in 6.25 pp steps and tracks greenness (see G1)."
+}

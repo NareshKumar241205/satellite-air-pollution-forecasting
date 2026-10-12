@@ -1,0 +1,112 @@
+{
+  "passes": false,
+  "effect_pct_per_pp": 0.5,
+  "tuning_years": [
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "cities": [
+    "Chennai",
+    "Coimbatore",
+    "Madurai",
+    "Tiruchirappalli",
+    "Salem",
+    "Tiruppur",
+    "Hosur",
+    "Vellore",
+    "Thoothukudi",
+    "Kanchipuram",
+    "Cuddalore",
+    "Thanjavur",
+    "Dindigul",
+    "Karur",
+    "Tiruvannamalai",
+    "Nagapattinam",
+    "Sivakasi",
+    "Ramanathapuram"
+  ],
+  "dL_source": {
+    "Chennai": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Coimbatore": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Madurai": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Tiruchirappalli": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Salem": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Tiruppur": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Hosur": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Vellore": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Thoothukudi": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Kanchipuram": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Cuddalore": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Thanjavur": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Dindigul": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Karur": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Tiruvannamalai": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Nagapattinam": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Sivakasi": "Earth Engine Dynamic World V1, same-season mode label, 10 m",
+    "Ramanathapuram": "Earth Engine Dynamic World V1, same-season mode label, 10 m"
+  },
+  "pooled": {
+    "all_tuning_pairs": {
+      "n": 6681,
+      "dL_sd_within": 1.7831569513,
+      "dL_noise_sd": 2.0778186434,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": -0.6447325701,
+      "dNO2_resid_sd": 6.6385716253,
+      "n_eff": 1185.3473280241,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 1.0804027122,
+      "passes": false
+    },
+    "no_lockdown_year": {
+      "n": 6681,
+      "dL_sd_within": 1.7831569513,
+      "dL_noise_sd": 2.0778186434,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": -0.6447325701,
+      "dNO2_resid_sd": 6.6385716253,
+      "n_eff": 1185.3473280241,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 1.0804027122,
+      "passes": false
+    },
+    "no_v1_v2_pair": {
+      "n": 4454,
+      "dL_sd_within": 1.8050777255,
+      "dL_noise_sd": 2.3652208846,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": -0.6177359984,
+      "dNO2_resid_sd": 6.8062055135,
+      "n_eff": 744.588664516,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 1.3975928858,
+      "passes": false
+    },
+    "long_2021_2024": {
+      "n": 2227,
+      "dL_sd_within": 1.9191042695,
+      "dL_noise_sd": 1.6634312779,
+      "dL_signal_sd": 0.9570567281,
+      "corr_dL_dveg": -0.6514560073,
+      "dNO2_resid_sd": 7.6714644934,
+      "n_eff": 303.9587527315,
+      "mde_pct_per_pp": 1.2880630115,
+      "sd_required_pp": 2.4654987426,
+      "passes": false
+    }
+  },
+  "sensitivity_city_weighted_mde": {
+    "all_tuning_pairs": 0.849246929197189,
+    "no_lockdown_year": 0.849246929197189,
+    "no_v1_v2_pair": 0.7946936300771879,
+    "long_2021_2024": 0.7501478500899316
+  },
+  "gate": {
+    "design": "pooled long difference",
+    "passes_at_0.5_pct_per_pp": false,
+    "passes_at_1_pct_per_pp": false
+  },
+  "note": "passes uses the pooled MDE (the gate as defined); the city-weighted MDE is a sensitivity only"
+}
