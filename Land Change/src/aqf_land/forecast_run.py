@@ -24,8 +24,8 @@ def load(cfg: dict) -> fc.Data:
     from aqf_land.layers import CLASSES, land_from_csv
     from aqf_land.tnaq import read_cities
 
-    no2 = read_cities(cfg, "NO2")
-    era5 = pd.read_csv(cfg["outputs"] / "P1_era5" / "era5_city_windows.csv", parse_dates=["window"])
+    no2 = read_cities(cfg, cfg.get("gas", "NO2"))
+    era5 = pd.read_csv(ROOT / "Land Change/results/P1_era5/era5_city_windows.csv", parse_dates=["window"])
     k = CLASSES.index("builtup")
     land = {}
     for box in no2["boxes"]:
@@ -188,7 +188,7 @@ def lead_arrays(a, alast, phi, years, span):
 def run(cfg: dict, rescore: bool = False, val_only: bool = False) -> None:
     out = cfg["outputs"] / ("C3_forecast_valcheck" if val_only else "C3_forecast")
     out.mkdir(parents=True, exist_ok=True)
-    rules = json.loads((cfg["outputs"] / "B_decision.json").read_text())
+    rules = json.loads((ROOT / "Land Change/results/B_decision.json").read_text())   # rule G: B = 0 for every gas
     if rules["B"] != 0:
         raise NotImplementedError("B != 0: the confirmatory land term is not wired in; see B_decision.json")
     rng = np.random.default_rng(0)

@@ -75,6 +75,26 @@ def land_panels(res, out) -> None:
     plt.close(fig)
 
 
+def gases(res, out) -> None:
+    """Skill vs lead on the 2025 test for the three gases (each scored once)."""
+    src = {"NO2": res / "C3_forecast", "CO": res / "gas/CO/C3_forecast", "SO2": res / "gas/SO2/C3_forecast"}
+    colors = {"NO2": BLUE, "CO": ORANGE, "SO2": GREY}
+    fig, ax = plt.subplots(figsize=(7, 3.8))
+    ax.axhline(0, color=GREY, lw=0.8)
+    for g, d in src.items():
+        f = d / "test2025_by_lead.csv"
+        if f.exists():
+            t = pd.read_csv(f)
+            ax.plot(t.days, 100 * t.skill_fused, "-o", ms=3, color=colors[g], label=g)
+    ax.set_xlabel("lead (days)")
+    ax.set_ylabel("MSE skill vs climatology (%)")
+    ax.set_title("2025 test, scored once per gas", fontsize=10)
+    ax.legend(fontsize=8, frameon=False)
+    fig.tight_layout()
+    fig.savefig(out / "fig_skill_by_gas_2025.png", dpi=150)
+    plt.close(fig)
+
+
 def run(cfg: dict) -> None:
     res = cfg["outputs"]
     out = res / "figures"
@@ -83,3 +103,4 @@ def run(cfg: dict) -> None:
     if (res / "C3_forecast" / "test2025_by_lead.csv").exists():
         skill_vs_lead(res, out)
         fan(res, out)
+        gases(res, out)

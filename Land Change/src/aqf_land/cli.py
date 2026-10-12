@@ -17,7 +17,7 @@ log = logging.getLogger("aqf_land")
 def cache(cfg: dict, force: bool) -> tuple[dict, dict]:
     from aqf_land.tnaq import read_cities
 
-    return read_cities(cfg, "NO2", force), read_cities(cfg, "S2", force)
+    return read_cities(cfg, cfg.get("gas", "NO2"), force), read_cities(cfg, "S2", force)
 
 
 def provenance(cfg: dict, pairs: pd.DataFrame | None = None) -> None:
@@ -153,7 +153,7 @@ def _deweathered(cfg: dict, tune: list[int]) -> dict | None:
     era = pd.read_csv(f, parse_dates=["window"])
     if not set(tune) <= set(era.window.dt.year):
         return None
-    no2 = read_cities(cfg, "NO2")
+    no2 = read_cities(cfg, cfg.get("gas", "NO2"))
     g = cfg["grid"]
     out = {}
     for s in cfg["cities"]:
@@ -219,7 +219,7 @@ def panel(cfg: dict, n_boot: int = 500, n_placebo: int = 500, exclude_outcome_ye
     if excl:
         head = f"POST-HOC DIAGNOSTIC D7, outcome years {list(excl)} removed (DIAGNOSTICS_PLAN.md addendum). " + head
     lines = [f"# C2 panel: {head}", "",
-             f"G1 detection limit (pooled long difference, 80 % power): **{mde_ld:.2f} % NO2 per pp**. "
+             f"G1 detection limit (pooled long difference, 80 % power): **{mde_ld:.2f} % {cfg.get("gas", "NO2")} per pp**. "
              "Estimates below that size can't be told apart from zero by this design; a null here is not evidence of "
              "no effect.",
              f"Sites: {len(cfg['cities'])}, years {tune[0]}-{tune[-1]} (Jan-Apr). Spatial-block bootstrap: {n_boot} "
@@ -346,6 +346,8 @@ def _g1_figures(cfg: dict, pairs: pd.DataFrame, out) -> None:
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="aqf-land", description=__doc__)
     ap.add_argument("--force", action="store_true", help="re-read the TNAQ GeoTIFFs instead of the cache")
+    ap.add_argument("--gas", default="NO2", choices=["NO2", "CO", "SO2"],
+                    help="gas for layers/g1/panel/forecast; non-NO2 results go to Land Change/results/gas/<gas>/")
     ap.add_argument("--layer", default="dw_label", help="built-up layer: dw_label (default), dw_prob_trail3 or obt; "
                     "alternatives write to Land Change/results/layers/<layer>/")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -370,6 +372,9 @@ def main(argv: list[str] | None = None) -> None:
     from aqf_land.tnaq import load_land_config
 
     cfg = load_land_config()
+    if args.gas != "NO2":
+        cfg["gas"] = args.gas
+        cfg["outputs"] = cfg["outputs"] / "gas" / args.gas
     if args.layer != "dw_label":
         cfg["land_layer"] = args.layer
         cfg["outputs"] = cfg["outputs"] / "layers" / args.layer

@@ -27,11 +27,12 @@ class Data:
         from aqf_land.tnaq import block_mean
 
         g = cfg["grid"]
+        scale = cfg["tnaq"]["gas_units"][cfg.get("gas", "NO2")][0]
         keep = no2["dates"] >= pd.Timestamp(start)
         self.dates = no2["dates"][keep]
         cols, meta = [], []
         for box in no2["boxes"]:
-            b = block_mean(no2[box.city][keep][:, 0], g["block"], g["min_valid_frac"]) * 1e6   # (T, Hb, Wb)
+            b = block_mean(no2[box.city][keep][:, 0], g["block"], g["min_valid_frac"]) * scale   # (T, Hb, Wb)
             T, H, W = b.shape
             cols.append(b.reshape(T, H * W))
             r, c = np.indices((H, W))

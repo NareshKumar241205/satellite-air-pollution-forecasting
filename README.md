@@ -48,8 +48,9 @@ data-quality rules. Each phase lives in its own folder with its own code, tests,
 This phase covers land-use change → NO2 and a 5–150-day NO2 forecast on **18 Tamil Nadu sites** (0.04° blocks, 2019–2025).
 
 Results:
-- **No land→NO2 effect is detectable.** The detection limit is 0.73 % NO2 per pp of built-up gain, and the lead test is confounded by the 2020 lockdown and aerosol. Land therefore enters the forecast with zero weight.
-- **Forecast skill:** the next-5-day forecast beats climatology by +9.4 % (validation) and +3.6 % (2025 test, scored once). Beyond 10 days, skill is ≈ 0.
+- **No land→NO2 effect is detectable.** The detection limit is 0.73 % NO2 per pp of built-up gain, and the lead test is confounded by the 2020 lockdown. Land therefore enters the forecast with zero weight.
+- **Forecast skill (NO2):** the next-5-day forecast beats climatology by +9.4 % (validation) and +3.6 % (2025 test, scored once). Beyond 10 days, skill is ≈ 0.
+- **Other gases:** CO +25.8 % on the 2025 test at the next window (and a precise land null, below ≈ 0.02 %/pp); SO2 has no skill. Use `--gas CO` or `--gas SO2` on `layers`, `g1`, `panel` and `forecast`.
 
 Full write-up: [`docs/FINAL_REPORT.md`](docs/FINAL_REPORT.md). Thesis chapter draft: [`docs/THESIS_CHAPTER_DRAFT.md`](docs/THESIS_CHAPTER_DRAFT.md).
 Details and history: [`Land Change/REPORT.md`](<Land Change/REPORT.md>). Pre-registered rules:

@@ -14,7 +14,8 @@ tnaq:
   # 2021/2024 windows). The 2025 test year lives here, never in Dataset/.
   extra_dirs: [data/tnaq_extra_v2]   # v2: outside-AOI zeros of the EE download set to NaN, as in the export
   nodata: -9999.0
-  products: {NO2: TNAQ_S5P_NO2, S2: TNAQ_S2}
+  products: {NO2: TNAQ_S5P_NO2, CO: TNAQ_S5P_CO, SO2: TNAQ_S5P_SO2, S2: TNAQ_S2}
+  gas_units: {NO2: [1.0e+6, umol/m2], SO2: [1.0e+6, umol/m2], CO: [1.0e+3, mmol/m2]}   # display scale of mol/m2
   s2_bands: [blue, green, red, nir, swir1, swir2]   # reflectance 0..1. 2018 is S2 TOA, not SR: never used.
 
 # Analysis grid: 4 x 4 blocks of the 0.01 deg export grid = 0.04 deg (~4.4 km), close to the TROPOMI footprint

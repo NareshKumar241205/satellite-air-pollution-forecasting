@@ -60,10 +60,9 @@ An early check on a 1 km Sentinel-2 index proxy was also instructive. Its "built
 
 **Diagnostics.** A pre-registered set of diagnostics traced the failure:
 - **Lockdown year.** Removing the 2020 outcome year eliminated it (0.31 → 0.01). January–April 2020 contains the COVID-19 lockdown, whose NO2 reduction varied across space; the most plausible reading is that this variation was related to later growth, although the diagnostic shows only that 2020 carries the lead.
-- **Aerosol.** In 2019–2021, the years for which the aerosol data could be retrieved, aerosol optical depth correlated strongly with the built-up label (r = 0.61), and next-year aerosol correlated with both the land lead and the NO2 residual.
-- **Ruled out:** single sites, box edges and shared spatial residual structure.
+- **Ruled out:** single sites, box edges and shared spatial residual structure. Aerosol, scene brightness, cloud and image counts were also checked for 2019–2024. Aerosol and brightness track the built-up label strongly (r ≈ 0.5), but neither correlates with the NO2 residual (|r| ≈ 0.02), so they don't explain the failure.
 
-**Conclusion of this section.** At ~5 km over 2019–2023, the satellite data do not show a land→NO2 effect larger than about 0.7 % per percentage point. The available contrasts are also confounded by the lockdown year and by aerosol. Under the pre-registered rule, land therefore enters the forecast with zero weight.
+**Conclusion of this section.** At ~5 km over 2019–2023, the satellite data do not show a land→NO2 effect larger than about 0.7 % per percentage point. The available contrasts are also confounded by the lockdown year. Under the pre-registered rule, land therefore enters the forecast with zero weight.
 
 ## X.4 Forecasting NO2
 
@@ -87,6 +86,14 @@ The model was chosen on validation. A small convolutional network was planned bu
 **Test (2025).** With every setting frozen and refitted on 2019–2024, the five-day forecast improved on climatology by **3.6 %** (CI −1.3 to 6.8 %). The interval includes zero, so the test-year gain is positive but not statistically significant. The 10–90 % band contained 81 % of observations. From ten days to 150 days, skill was indistinguishable from zero. The skill-versus-lead curve drops from the first window to the second and stays flat.
 
 **Long range.** The useful long-range forecast is the seasonal climatology itself, with calibrated uncertainty. At the city level, 78 % of January–May 2025 site means fell inside the 10–90 % band, and those site means ran a median 7 % below the 2019–2024 climatology.
+
+## X.4b The other gases: carbon monoxide and sulphur dioxide
+
+The same sites, models and rules were applied to CO and SO2, with land weight again set to zero. Each gas was scored once on 2025.
+
+- **CO.** Next-window skill is **+16.3 %** on validation (CI 5.2–27.0 %) and **+25.8 %** on the 2025 test (CI 12.0–38.6 %), clearly above the NO2 result. CO is a long-lived, spatially smooth gas, so recent anomalies persist; damped persistence alone gives +13 % on validation. The test-year bands were too narrow (74 % coverage against a nominal 80 %), because 2025 varied more than the validation years. Beyond the second window, skill is zero.
+- **SO2.** No model improved on climatology (validation skill −0.7 % to 0.0 %), so the climatology is the forecast. SO2 retrievals are noisy and its signal comes mainly from point sources.
+- **Land change.** CO's land design was well powered (detectable effect 0.13 % per point) and showed a clean null: any effect is below about 0.02 % per point, which is expected for a smooth, background-dominated gas. SO2's design could detect only effects above 4.7 % per point and so is uninformative. These land checks were exploratory and did not alter the land weight.
 
 ## X.5 Discussion
 

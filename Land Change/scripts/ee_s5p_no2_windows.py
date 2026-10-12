@@ -27,15 +27,21 @@ from aqf_land.tnaq import list_files, load_land_config
 
 TRANSFORM = [0.01, 0, 76.22, 0, -0.01, 13.54]
 WIDTH, HEIGHT = 414, 547
-FLOOR = -0.0005
+GASES = {  # collection, band, outlier floor (mol/m2), local product folder: as in AirQ/Scripts/Data_acquisition.js
+    "NO2": ("COPERNICUS/S5P/OFFL/L3_NO2", "tropospheric_NO2_column_number_density", -0.0005, "TNAQ_S5P_NO2"),
+    "CO": ("COPERNICUS/S5P/OFFL/L3_CO", "CO_column_number_density", -0.0010, "TNAQ_S5P_CO"),
+    "SO2": ("COPERNICUS/S5P/OFFL/L3_SO2", "SO2_column_number_density", -0.0050, "TNAQ_S5P_SO2"),
+}
+GAS = "NO2"
 ANCHOR = pd.Timestamp("2018-01-01")
 
 
 def composite(day: pd.Timestamp, aoi: ee.Geometry) -> ee.Image:
+    coll, band, floor, _ = GASES[GAS]
     d0 = ee.Date(day.strftime("%Y-%m-%d"))
-    col = (ee.ImageCollection("COPERNICUS/S5P/OFFL/L3_NO2").filterBounds(aoi).filterDate(d0, d0.advance(5, "day"))
-           .select(["tropospheric_NO2_column_number_density"], ["value"])
-           .map(lambda img: img.updateMask(img.gte(FLOOR))))
+    col = (ee.ImageCollection(coll).filterBounds(aoi).filterDate(d0, d0.advance(5, "day"))
+           .select([band], ["value"])
+           .map(lambda img: img.updateMask(img.gte(floor))))
     img = ee.Image(ee.Algorithms.If(col.size().gt(0),
                                     col.mean().rename("value").addBands(col.count().rename("n_obs")),
                                     ee.Image([0, 0]).rename(["value", "n_obs"]).selfMask()))
@@ -65,20 +71,25 @@ def download(img: ee.Image, path) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--project", required=True)
+    ap.add_argument("--gas", choices=list(GASES), default="NO2")
     ap.add_argument("--year", type=int)
     ap.add_argument("--check", help="YYYYMMDD of an existing local window to reproduce and compare")
     args = ap.parse_args()
+    global GAS
+    GAS = args.gas
     ee.Initialize(project=args.project)
     cfg = load_land_config()
+    folder = GASES[GAS][3]
+    stem = f"s5p_{GAS.lower()}"
     aoi = (ee.FeatureCollection("FAO/GAUL_SIMPLIFIED_500m/2015/level1")
            .filter(ee.Filter.And(ee.Filter.eq("ADM0_NAME", "India"), ee.Filter.eq("ADM1_NAME", "Tamil Nadu")))
            .geometry())
-    out_dir = ROOT / "data/tnaq_extra_v2/TNAQ_S5P_NO2"
+    out_dir = ROOT / "data/tnaq_extra_v2" / folder
     if args.check:
         day = pd.Timestamp(args.check)
-        tmp = ROOT / "data/tnaq_check" / f"s5p_no2_{args.check}.tif"
+        tmp = ROOT / "data/tnaq_check" / f"{stem}_{args.check}.tif"
         download(composite(day, aoi), tmp)
-        local = list_files(cfg, "NO2").set_index("date").path[day]
+        local = list_files(cfg, GAS).set_index("date").path[day]
         with rasterio.open(local) as a, rasterio.open(tmp) as b:
             x, y = a.read(1), b.read(1)
         def cls(v):                                     # 0 = valid, 1 = -9999 (no orbit), 2 = NaN (outside AOI)
@@ -93,7 +104,7 @@ def main() -> None:
     starts = pd.date_range(ANCHOR, f"{args.year}-12-31", freq="5D")
     starts = starts[starts.year == args.year]
     for day in starts:
-        path = out_dir / f"s5p_no2_{day:%Y%m%d}.tif"
+        path = out_dir / f"{stem}_{day:%Y%m%d}.tif"
         if path.exists():
             continue
         download(composite(day, aoi), path)

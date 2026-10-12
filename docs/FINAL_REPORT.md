@@ -7,16 +7,19 @@ Branch `adr-001-phase1`, 12 Oct 2026. Every number below comes from files in `La
 
 ## 1. Question and answer
 
+*Other gases (CO, SO2) are summarised in answer 4 below and detailed in §4b.*
+
 **Question.** Does land-use change (built-up growth) measurably change tropospheric NO2 in Sentinel-5P? Can a
 satellite NO2 forecast for Tamil Nadu cities use land change, and how far ahead is it skilful?
 
 **Answer.**
-1. **No land→NO2 effect is detectable.** On the best available design, the smallest effect that could have been detected (80 % power) is **0.73 % NO2 per percentage point of built-up gain**. Every estimate is near zero; for example, own built-up gives −0.004 %/pp [−0.08, 0.09]. The design checks fail, though: the lead placebo is non-zero, driven by the 2020 lockdown year and correlated with aerosol. So the null can't be read as "no effect" either. The thesis result is the detection limit.
+1. **No land→NO2 effect is detectable.** On the best available design, the smallest effect that could have been detected (80 % power) is **0.73 % NO2 per percentage point of built-up gain**. Every estimate is near zero; for example, own built-up gives −0.004 %/pp [−0.08, 0.09]. The design checks fail, though: the lead placebo is non-zero, and it is driven by the 2020 lockdown year. So the null can't be read as "no effect" either. The thesis result is the detection limit.
 2. **The land term in the forecast is therefore zero (B = 0),** under a rule fixed in advance.
 3. **Forecasts beat climatology only for the next 5-day window.**
    - Validation 2023–24: **+9.4 %** MSE skill [6.4, 13.4] (Ridge).
    - Test 2025, scored with frozen settings: **+3.6 %** [−1.3, 6.8].
    - From 10 days to 150 days, skill is ≈ 0, so the dependable long-range forecast is the per-pixel seasonal climatology with calibrated bands. The 10–90 % band covered 81 % of 2025 pixel values.
+4. **Other gases.** CO is forecastable for the next window (**+25.8 %** [12.0, 38.6] on the 2025 test, but bands too narrow: 0.74 coverage); SO2 isn't (≈ 0). Land has no detectable effect on CO (below ≈ 0.02 %/pp, a precise null) and SO2's land test is uninformative (limit 4.7 %/pp).
 
 ## 2. Data
 
@@ -69,9 +72,10 @@ The smoother layers move less from year to year, so they carry less signal.
 
 **Found:**
 - **The lockdown year.** Dropping outcome year 2020 removes the lead: 0.31 → **0.01** (−97 %). Jan–Apr 2020 contains the COVID lockdown (from 25 March), whose NO2 drop varied across space. The likeliest reading is that pixels which later gained built-up area had different lockdown drops. D4 shows only that 2020 carries the lead, not the mechanism.
-- **Aerosol (D1, covariates for 2019–2021 only).** Within site and year, AOD correlates 0.61 with the DW built-up label, and next-year AOD correlates with both L(t+1) (0.63) and the NO2 residual (−0.12). That crosses the pre-set |r| ≥ 0.1 flag. Urban, hazy pixels are also built-up pixels, so a common aerosol factor can't be excluded.
+
 
 **Ruled out:**
+- **Aerosol, brightness, cloud and scene counts (D1, all of 2019–2024).** Within site and year, aerosol optical depth tracks the built-up label strongly (r = 0.56) and the label lead (0.59), as does scene brightness (0.51/0.50). But the correlation with the NO2 residual is ≈ 0 (AOD +0.02, −0.02 next year; brightness +0.02), so they don't meet the pre-set flag (|r| ≥ 0.1 with both the land lead and NO2). An earlier reading from 2019–2021 only gave −0.12 for next-year AOD; with the full six years it is −0.02, and that statement is withdrawn. Cloud probability and the number of Dynamic World images show no relation to either (|r| < 0.1).
 - **Single sites:** leave-one-site-out moves the lead by at most ±24 %.
 - **Box edges:** dropping the outer ring changes it by −11 %.
 - **Shared spatial structure:** the neighbour cross-correlation of the residuals is 0.02.
@@ -140,12 +144,46 @@ Weather helps a little; **land adds nothing**.
 - **Site-mean fan chart** from the last 2024 window: 78 % of observed site means fall inside the 10–90 % band.
 - **Bias:** Jan–May 2025 site means ran a median 7 % below the 2019–2024 climatology.
 
+## 4b. The other gases: CO and SO2 (rule G, committed before any result)
+
+Same sites, blocks, splits, features and models. Land weight stays 0 for both gases. Each gas was scored on 2025 exactly once, using its own 2025 data (73 windows per gas, reproduced bit for bit on two checked windows each). Units: mmol/m² for CO and µmol/m² for SO2. Results are under `Land Change/results/gas/<gas>/`, and the comparison figure is `fig_skill_by_gas_2025.png`.
+
+### Forecast skill
+
+| | NO2 | CO | SO2 |
+|---|---|---|---|
+| Validation 2023–24, lead 1, best model | Ridge +9.4 % [6.4, 13.4] | Ridge **+16.3 % [5.2, 27.0]** | none: all models −0.7 % to 0.0 % |
+| (damped persistence / LightGBM) | +5.4 % / +6.5 % | +13.2 % / +13.1 % | −0.1 % / 0.0 % |
+| **2025 test, lead 1** | **+3.6 % [−1.3, 6.8]** | **+25.8 % [12.0, 38.6]** | +0.1 % [0.0, 0.2] |
+| 2025 test, lead 2 (10 days) | +0.05 % | +5.0 % | −0.1 % |
+| 2025 test, leads ≥ 6 (30 days+) | ≈ 0 | ≈ 0 (−1.8 % to +0.7 %) | ≈ 0 |
+| 10–90 % band coverage, 2025, lead 1 | 0.81 | 0.74 (0.68–0.70 beyond) | 0.94 |
+| Reading (rule G) | skill in week one only | **real skill in the next window**; climatology after | **no skill beyond climatology** |
+
+- **CO.** Its column is dominated by slow, large-scale variability, so recent anomalies persist: damped persistence alone gives +13 % at lead 1. 2025 was a more variable year than validation (climatology RMSE 3.66 against 3.11 mmol/m²), which raised the test skill but left the bands too narrow (coverage 0.74 against 0.80 nominal).
+- **SO2.** The retrievals are very noisy (RMSE ≈ 200 µmol/m² around the climatology, from a wide negative tail allowed by the −0.005 mol/m² floor), and the signal is mostly point sources. Validation skill is −0.7 % to 0.0 %, so by the reading rule SO2's forecast is the climatology. The 0.94 coverage reflects bands that are too wide for heavy tails.
+- **Ablations (LightGBM, validation).** Weather helps CO (+13.1 % with it, +11.8 % without); neither SO2 nor CO uses land. The land-shuffled run equals the full run to four decimals for all three gases, so the land column is never used by the trees. The small gap for "land off" on CO (12.5 % against 13.1 %) comes from the changed column count altering the random feature sampling, not from land information.
+
+### Land change → CO and SO2 (exploratory; changes no decision)
+
+| | CO | SO2 |
+|---|---|---|
+| G1 detectable effect, pooled 2019→2023 | **0.13 %/pp, passes** | 4.73 %/pp, fails |
+| Own built-up effect, panel [95 % CI] | +0.005 [−0.005, 0.017] | +1.07 [−0.36, 2.51] |
+| Long difference | +0.007 [−0.008, 0.022] | +1.14 [−0.77, 2.93] |
+| Lead L(t+1), should be 0 | +0.016 [−0.012, 0.040], clean | −0.34 [−2.66, 1.46], uninformative |
+
+- **CO** has a well-powered, clean design: any land effect on CO is below about 0.02 % per pp of built-up gain. The reason is physical: CO columns are spatially smooth and background-dominated, so a 4 km block's land can't move them. This is a precise null, not a failure of power.
+- **SO2** can detect only effects above about 4.7 %/pp, so its null says nothing.
+- In the CO panel the previous year's land (L_lag) is positive and significant (+0.052 [0.010, 0.085]). It isn't part of the pre-set clean criterion, and it is reported here for completeness.
+
 ## 5. Figures
 
 Figures are in `Land Change/results/figures/`:
 - `fig_land_layers_g1_lead.png`: G1 detectable effect and the lead and neighbour checks per layer;
 - `fig_skill_vs_lead.png`: skill against lead time;
-- `fig_fan_2025.png`: Chennai, Coimbatore and Madurai.
+- `fig_fan_2025.png`: Chennai, Coimbatore and Madurai;
+- `fig_skill_by_gas_2025.png`: 2025 test skill for NO2, CO and SO2.
 
 `G1_power/fig_g1_*.png` shows the land-change distributions.
 
@@ -158,7 +196,6 @@ Figures are in `Land Change/results/figures/`:
   - The account-free gridded ESA CCI+ product is 0.2° (5× coarser than the blocks) and ends in December 2021.
   - After July 2022 the operational stream is already v2.4.0 or later, consistent with the reprocessing.
 - **Lockdown confounding.** The 2020 lockdown sits inside the land window. Excluding 2020 wasn't pre-registered for the panel, so it is reported only as a diagnostic.
-- **Incomplete aerosol check.** D1 covers 2019–2021 only: Earth Engine timed out on 2022–2024.
 - **No CNN.** The deep-learning step wasn't run.
 - **Sites.** The 18 sites are Tamil Nadu cities and towns; Bengaluru and Hyderabad lie outside the clipped export.
 
