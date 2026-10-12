@@ -68,3 +68,23 @@ Otherwise **B = 0**. The thesis result is then the detection limit: "no land→N
 - Freeze everything above.
 - Refit the climatology, φ_h, the chosen model (with its validation-chosen settings and round count), g(h) and the interval quantiles on train + validation (2019–2024).
 - Score 2025 once, and write down the numbers whatever they are.
+
+## G. Other gases: CO and SO2 (added 13 Oct 2026, committed before any CO or SO2 result)
+
+Scope added at Naresh's request ("update these tasks too"). **Every rule in sections C–E applies unchanged, gas by gas.**
+
+**Same.**
+- sites, blocks, windows, splits and seed;
+- the features, models and fixed settings;
+- the metrics, the bootstrap and the fusion rule;
+- land term B = 0 for both gases. The land decision for NO2 was made on NO2 and is not re-opened. The land power check for CO and SO2 is run (section G.3) only as a labelled exploratory item.
+
+**Differences.**
+1. **Data.**
+   - **Source:** the TNAQ export for 2019–2024, plus 2025 downloaded with the same repaired method (`ee_s5p_no2_windows.py --gas`). Bit-for-bit reproduction of two existing windows per gas is the acceptance check, and the NaN, −9999 and valid classes must also match. If the check fails, 2025 is not scored for that gas.
+   - **Units:** µmol/m² for SO2, mmol/m² for CO. Zeros are missing, as in the main data rules (`configs/data.yaml`).
+2. **ERA5 and land features.** They are the same, so each gas gets the same feature set.
+3. **Land power check, exploratory.** Gate G1 and the C2 panel are re-run per gas on the DW-label layer only, 2019–2023 tuning years, with the unchanged estimator. Results are labelled exploratory and cannot change any decision.
+4. **Test.** Each gas is scored on 2025 exactly once after its own validation stage, and the number is recorded whatever it is. The NO2 test is not re-scored.
+
+**Reading rule.** If a gas's validation skill at lead 1 has a 95 % CI that covers 0, the gas is reported as "no skill beyond climatology" and the climatology is its forecast. This is stated before any result is known.

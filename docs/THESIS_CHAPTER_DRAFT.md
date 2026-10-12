@@ -59,8 +59,8 @@ An early check on a 1 km Sentinel-2 index proxy was also instructive. Its "built
 **The lead test failed.** Next year's built-up fraction "predicted" this year's NO2 (+0.31 %/pp, CI 0.14–0.45), which a causal effect cannot do. The neighbour term was also significant.
 
 **Diagnostics.** A pre-registered set of diagnostics traced the failure:
-- **Lockdown year.** Removing the 2020 outcome year eliminated it (0.31 → 0.01). January–April 2020 contains the COVID-19 lockdown, whose NO2 reduction varied across space in a way related to later growth.
-- **Aerosol.** Aerosol optical depth correlated strongly with the built-up label (r = 0.61), and next-year aerosol correlated with both the land lead and the NO2 residual.
+- **Lockdown year.** Removing the 2020 outcome year eliminated it (0.31 → 0.01). January–April 2020 contains the COVID-19 lockdown, whose NO2 reduction varied across space; the most plausible reading is that this variation was related to later growth, although the diagnostic shows only that 2020 carries the lead.
+- **Aerosol.** In 2019–2021, the years for which the aerosol data could be retrieved, aerosol optical depth correlated strongly with the built-up label (r = 0.61), and next-year aerosol correlated with both the land lead and the NO2 residual.
 - **Ruled out:** single sites, box edges and shared spatial residual structure.
 
 **Conclusion of this section.** At ~5 km over 2019–2023, the satellite data do not show a land→NO2 effect larger than about 0.7 % per percentage point. The available contrasts are also confounded by the lockdown year and by aerosol. Under the pre-registered rule, land therefore enters the forecast with zero weight.
@@ -84,9 +84,9 @@ The model was chosen on validation. A small convolutional network was planned bu
 
 **Validation (2023–2024).** For the next five-day window, ridge regression improved the mean squared error by **9.4 %** over climatology (CI 6.4–13.4 %). Gradient boosting gained 6.5 % and damped persistence 5.4 %. Weather added a little skill. Removing or shuffling land fractions changed nothing, consistent with Section X.3.
 
-**Test (2025).** With every setting frozen and refitted on 2019–2024, the five-day forecast improved on climatology by **3.6 %** (CI −1.3 to 6.8 %). The 10–90 % band contained 81 % of observations. From ten days to 150 days, skill was indistinguishable from zero. The skill-versus-lead curve drops from the first window to the second and stays flat.
+**Test (2025).** With every setting frozen and refitted on 2019–2024, the five-day forecast improved on climatology by **3.6 %** (CI −1.3 to 6.8 %). The interval includes zero, so the test-year gain is positive but not statistically significant. The 10–90 % band contained 81 % of observations. From ten days to 150 days, skill was indistinguishable from zero. The skill-versus-lead curve drops from the first window to the second and stays flat.
 
-**Long range.** The useful long-range forecast is the seasonal climatology itself, with calibrated uncertainty. At the city level, 78 % of 2025 site means fell inside the 10–90 % band, and 2025 ran about 7 % below the 2019–2024 climatology.
+**Long range.** The useful long-range forecast is the seasonal climatology itself, with calibrated uncertainty. At the city level, 78 % of January–May 2025 site means fell inside the 10–90 % band, and those site means ran a median 7 % below the 2019–2024 climatology.
 
 ## X.5 Discussion
 

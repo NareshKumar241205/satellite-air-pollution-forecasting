@@ -164,11 +164,13 @@ def _deweathered(cfg: dict, tune: list[int]) -> dict | None:
     return out
 
 
-def panel(cfg: dict, n_boot: int = 500, n_placebo: int = 500) -> None:
+def panel(cfg: dict, n_boot: int = 500, n_placebo: int = 500, exclude_outcome_years: tuple = ()) -> None:
     from aqf_land import panel as pn
     from aqf_land.layers import CLASSES
 
-    out = cfg["outputs"] / "C2_panel_EXPLORATORY"
+    excl = tuple(sorted(exclude_outcome_years))
+    tag = "" if not excl else "_POSTHOC_D7_without_" + "_".join(map(str, excl))
+    out = cfg["outputs"] / f"C2_panel_EXPLORATORY{tag}"
     out.mkdir(parents=True, exist_ok=True)
     z = np.load(cfg["outputs"] / "P1_layers" / "land_fractions_no2_season.npz")
     tune = cfg["years"]["tuning"]                                         # 2024 and 2025 are never read
@@ -185,8 +187,12 @@ def panel(cfg: dict, n_boot: int = 500, n_placebo: int = 500) -> None:
         rows.append({"outcome": variant, "model": model, "term": term, "estimate": est,
                      "boot_se": float(np.std(draws, ddof=1)), "ci95_lo": lo, "ci95_hi": hi, "n_draws": len(draws)})
 
+    ll_years = [y for y in tune[1:-1] if y not in excl]          # outcomes that have both a lead and a lag
+    ll_label = f"lead/lag ({ll_years[0]}-{ll_years[-1]} outcomes)" if len(ll_years) > 1 else f"lead/lag ({ll_years[0]})"
     for variant, ylog in variants.items():
         p = pn.build_panel(z, list(cfg["cities"]), tune, k, ylog)
+        if excl:                                   # D7: drop those outcomes; their land stays as leads/lags
+            p.loc[p.year.isin(excl), "y"] = np.nan
         b = pn.fit(p, ["L", "WL"])
         bs = pn.block_bootstrap(p, ["L", "WL"], n_boot, rng)
         add(variant, "panel two-way FE + SLX", "L (own built-up)", b[0], bs[:, 0])
@@ -194,7 +200,7 @@ def panel(cfg: dict, n_boot: int = 500, n_placebo: int = 500) -> None:
         bl = pn.fit(p, ["L", "L_lead", "L_lag", "WL"])
         bls = pn.block_bootstrap(p, ["L", "L_lead", "L_lag", "WL"], n_boot, rng)
         for j, term in enumerate(["L", "L_lead (placebo: must be ~0)", "L_lag", "WL"]):
-            add(variant, "lead/lag (2020-2022 outcomes)", term, bl[j], bls[:, j])
+            add(variant, ll_label, term, bl[j], bls[:, j])
         b_ld, d = pn.long_difference_fit(p, tune[0], tune[-1])
         add(variant, f"long difference {tune[0]}->{tune[-1]} + site FE (G1 design)", "dL", b_ld,
             pn.long_difference_bootstrap(d, n_boot, rng))
@@ -210,6 +216,8 @@ def panel(cfg: dict, n_boot: int = 500, n_placebo: int = 500) -> None:
     mde_ld = mde[f"long_{tune[0]}_{tune[-1]}"]["mde_pct_per_pp"]
     head = pn.EXPLORATORY if dw is None else pn.EXPLORATORY.replace(
         "raw Jan-Apr NO2, no ERA5 deweathering", "raw and ERA5-deweathered Jan-Apr NO2")
+    if excl:
+        head = f"POST-HOC DIAGNOSTIC D7, outcome years {list(excl)} removed (DIAGNOSTICS_PLAN.md addendum). " + head
     lines = [f"# C2 panel: {head}", "",
              f"G1 detection limit (pooled long difference, 80 % power): **{mde_ld:.2f} % NO2 per pp**. "
              "Estimates below that size can't be told apart from zero by this design; a null here is not evidence of "
@@ -351,7 +359,9 @@ def main(argv: list[str] | None = None) -> None:
     sf.add_argument("--rescore-test", action="store_true", help="only to reproduce identical numbers; never to tune")
     sf.add_argument("--validation-only", action="store_true", help="debug run of the validation stage; 2025 untouched")
     sub.add_parser("diag", help="lead-test diagnostics D1-D6 (Land Change/DIAGNOSTICS_PLAN.md)")
-    sub.add_parser("panel", help="C2 panel, EXPLORATORY: two-way FE + SLX, block bootstrap, placebo, lead/lag")
+    spn = sub.add_parser("panel", help="C2 panel, EXPLORATORY: two-way FE + SLX, block bootstrap, placebo, lead/lag")
+    spn.add_argument("--exclude-outcome-years", type=int, nargs="*", default=[],
+                     help="post-hoc diagnostic D7 only (e.g. 2020); results go to a separate, labelled folder")
     sub.add_parser("all", help="cache, layers, provenance, g1")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s: %(message)s", datefmt="%H:%M:%S")
@@ -380,7 +390,7 @@ def main(argv: list[str] | None = None) -> None:
         forecast_run.run(cfg, rescore=args.rescore_test, val_only=args.validation_only)
         return
     if args.cmd == "panel":
-        panel(cfg)
+        panel(cfg, exclude_outcome_years=tuple(args.exclude_outcome_years))
         return
     if args.cmd == "provenance":
         p = cfg["outputs"] / "P1_layers" / "pixel_year_pairs.csv"

@@ -68,7 +68,7 @@ The smoother layers move less from year to year, so they carry less signal.
 ### 3.3 Why the lead test fails (`Land Change/results/D_lead_diagnostics/`)
 
 **Found:**
-- **The lockdown year.** Dropping outcome year 2020 removes the lead: 0.31 → **0.01** (−97 %). Jan–Apr 2020 contains the COVID lockdown, whose NO2 drop varied across space. Pixels that later gained built-up area had different lockdown drops.
+- **The lockdown year.** Dropping outcome year 2020 removes the lead: 0.31 → **0.01** (−97 %). Jan–Apr 2020 contains the COVID lockdown (from 25 March), whose NO2 drop varied across space. The likeliest reading is that pixels which later gained built-up area had different lockdown drops. D4 shows only that 2020 carries the lead, not the mechanism.
 - **Aerosol (D1, covariates for 2019–2021 only).** Within site and year, AOD correlates 0.61 with the DW built-up label, and next-year AOD correlates with both L(t+1) (0.63) and the NO2 residual (−0.12). That crosses the pre-set |r| ≥ 0.1 flag. Urban, hazy pixels are also built-up pixels, so a common aerosol factor can't be excluded.
 
 **Ruled out:**
@@ -78,7 +78,7 @@ The smoother layers move less from year to year, so they carry less signal.
 
 **Partly explained:**
 - **Pixel trends:** pixel-specific trends shrink the lead to 0.11.
-- **Level dependence:** yearly label change is larger in high-NO2 pixels (+0.8 to +2.0 pp per 100 log-units in 2019–2022), which is consistent with growth on the urban fringe.
+- **Level dependence:** yearly label change is larger in high-NO2 pixels in the first three pairs: +0.8, +1.2 and +2.0 pp per 100 log-units for 2019→20, 2020→21 and 2021→22. It is −0.7 for 2022→23. That is consistent with growth on the polluted urban fringe, but it isn't stable across years.
 
 **Rule B (pre-registered).**
 - Steadier layer: DW probability, the only one clean on the primary (raw) outcome.
@@ -108,6 +108,8 @@ The smoother layers move less from year to year, so they carry less signal.
 
 Ridge validation skill by IMD season: winter +18 %, pre-monsoon +10 %, SW monsoon +10 %, NE monsoon +5 %.
 
+The chosen α = 1000 is the largest value in the frozen grid {0.1 … 1000}. Stronger shrinkage might do slightly better, but the grid wasn't widened after seeing it, so it stays.
+
 **Ablations** (LightGBM, validation skill):
 
 | Variant | Skill |
@@ -122,7 +124,7 @@ Weather helps a little; **land adds nothing**.
 ### 4.2 Long range and fusion
 
 - **Fusion:** F = climatology + B + g(h)·Â(h), with g(h) fitted per lead on validation and monotone in [0, 1]. Here g ≈ 1 up to 55 days and 0.85 from 60 days.
-- **Skill by lead:** damped persistence falls to +1.7 % at 10 days and below +1 % from 15 days.
+- **Skill by lead:** damped persistence falls to +1.7 % at 10 days, +1.0 % at 15 days, and below +1 % after that.
 - **Long-range forecast:** beyond the first window, the forecast is effectively climatology. See `Land Change/results/figures/fig_skill_vs_lead.png`.
 
 ### 4.3 Test 2025, frozen settings
@@ -136,7 +138,7 @@ Weather helps a little; **land adds nothing**.
 
 - **Pattern correlation** at lead 1 is 0.09.
 - **Site-mean fan chart** from the last 2024 window: 78 % of observed site means fall inside the 10–90 % band.
-- **Bias:** 2025 NO2 ran a median 7 % below climatology.
+- **Bias:** Jan–May 2025 site means ran a median 7 % below the 2019–2024 climatology.
 
 ## 5. Figures
 
@@ -150,7 +152,11 @@ Figures are in `Land Change/results/figures/`:
 ## 6. Limitations
 
 - **Coarse resolution.** S5P pixels are ~5 km, and real built-up change is ~1–2 pp per 4 years per block. Dynamic World label noise (~2 pp) is as large as that signal, which attenuates any slope about ×0.3.
-- **Changing processor versions.** Every season uses a different TROPOMI version. Site×year effects absorb uniform steps, but a level-dependent step can't be ruled out. A consistent reprocessing (S5P-PAL) wasn't available in Earth Engine.
+- **Changing processor versions.** Every season uses a different TROPOMI version. Site×year effects absorb uniform steps, but a level-dependent step can't be ruled out. The consistent records that exist don't fit this design (checked 13 Oct 2026):
+  - The full-mission reprocessing (RPRO v2.4.0, 1 May 2018 – 25 Jul 2022) is Level-2 orbit files only, on the Copernicus Data Space. That means an account and roughly 300 GB for the Jan–Apr seasons 2019–2022 (my estimate: about 700 orbits at about 450 MB each).
+  - The S5P-PAL v2.3.1 reprocessing is also Level-2, and it ends in November 2021.
+  - The account-free gridded ESA CCI+ product is 0.2° (5× coarser than the blocks) and ends in December 2021.
+  - After July 2022 the operational stream is already v2.4.0 or later, consistent with the reprocessing.
 - **Lockdown confounding.** The 2020 lockdown sits inside the land window. Excluding 2020 wasn't pre-registered for the panel, so it is reported only as a diagnostic.
 - **Incomplete aerosol check.** D1 covers 2019–2021 only: Earth Engine timed out on 2022–2024.
 - **No CNN.** The deep-learning step wasn't run.
