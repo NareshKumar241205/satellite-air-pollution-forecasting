@@ -52,7 +52,7 @@ Results:
 - **Forecast skill (NO2):** the next-5-day forecast beats climatology by +9.4 % (validation) and +3.6 % (2025 test, scored once). Beyond 10 days, skill is ≈ 0.
 - **Other gases:** CO +25.8 % on the 2025 test at the next window (and a precise land null, below ≈ 0.02 %/pp); SO2 has no skill. Use `--gas CO` or `--gas SO2` on `layers`, `g1`, `panel` and `forecast`.
 
-Full write-up: [`docs/FINAL_REPORT.md`](docs/FINAL_REPORT.md). Thesis chapter draft: [`docs/THESIS_CHAPTER_DRAFT.md`](docs/THESIS_CHAPTER_DRAFT.md).
+Plan and status: [`Land Change/PLAN.md`](<Land Change/PLAN.md>). Full write-up: [`docs/FINAL_REPORT.md`](docs/FINAL_REPORT.md). Thesis chapter draft: [`docs/THESIS_CHAPTER_DRAFT.md`](docs/THESIS_CHAPTER_DRAFT.md).
 Details and history: [`Land Change/REPORT.md`](<Land Change/REPORT.md>). Pre-registered rules:
 [`SITE_SELECTION.md`](<Land Change/SITE_SELECTION.md>), [`DIAGNOSTICS_PLAN.md`](<Land Change/DIAGNOSTICS_PLAN.md>),
 [`DECISION_RULES.md`](<Land Change/DECISION_RULES.md>).
