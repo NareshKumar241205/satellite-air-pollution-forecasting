@@ -84,6 +84,17 @@ The smoother layers move less from year to year, so they carry less signal.
 - **Pixel trends:** pixel-specific trends shrink the lead to 0.11.
 - **Level dependence:** yearly label change is larger in high-NO2 pixels in the first three pairs: +0.8, +1.2 and +2.0 pp per 100 log-units for 2019→20, 2020→21 and 2021→22. It is −0.7 for 2022→23. That is consistent with growth on the polluted urban fringe, but it isn't stable across years.
 
+**Post-hoc D7: the panel without the 2020 outcomes** (declared in `DIAGNOSTICS_PLAN.md` before it was run; it can't change rule B). Outcome years 2021–2022 remain for the lead test.
+
+| Layer | own L, %/pp [95 % CI] | lead L(t+1) | neighbour WL |
+|---|---|---|---|
+| DW label, raw | +0.001 [−0.08, 0.10] | +0.009 [−0.27, 0.25] | +0.25 [0.02, 0.49] |
+| DW label, deweathered | +0.011 [−0.07, 0.09] | +0.010 [−0.21, 0.24] | +0.35 [0.14, 0.54] |
+| DW prob. 3-y, raw | −0.04 [−0.19, 0.12] | +0.25 [−0.49, 1.03] | +0.23 [−0.26, 0.70] |
+| Open Buildings, raw | −0.77 [−1.78, 0.61] | **−3.56 [−6.49, −0.43]** | +0.84 [−1.47, 4.02] |
+
+Without 2020 the lead is zero on the main layer, which confirms the lockdown reading. The neighbour term stays positive on the DW-label layer (spillover or residual confounding; this design can't separate them), and Open Buildings stays unusable.
+
 **Rule B (pre-registered).**
 - Steadier layer: DW probability, the only one clean on the primary (raw) outcome.
 - G1 fails at 0.5 %/pp, so **B = 0**.
