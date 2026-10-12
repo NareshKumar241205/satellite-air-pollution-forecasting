@@ -1,0 +1,75 @@
+# ADR-001 Phase 1: dual-clock land-use change -> NO2 change (Land Change/). Data rules come from configs/data.yaml.
+#
+# Two clocks: land changes slowly, so it is measured once per year from a same-season Sentinel-2 composite.
+# NO2 changes fast, so it is averaged over the same season of the same year. The unit of analysis is
+# one S5P pixel x one year pair: dNO2 (log change) against dL (land-fraction change).
+outputs: "Land Change/results"
+
+# Local Tamil Nadu export (Earth Engine, AirQ/Scripts/Data_acquisition.js): one GeoTIFF per product per 5-day
+# window, fixed 0.01 deg EPSG:4326 grid. Path relative to the repository root. It is read-only.
+tnaq:
+  dir: ../Dataset/Raw
+  acquisition_script: ../AirQ/Scripts/Data_acquisition.js   # how the export was made (read-only)
+  nodata: -9999.0
+  products: {NO2: TNAQ_S5P_NO2, S2: TNAQ_S2}
+  s2_bands: [blue, green, red, nir, swir1, swir2]   # reflectance 0..1. 2018 is S2 TOA, not SR: never used.
+
+# Analysis grid: 4 x 4 blocks of the 0.01 deg export grid = 0.04 deg (~4.4 km), close to the TROPOMI footprint
+# (5.5 x 3.5 km) and to the 13x13 Chennai grid of the original dataset. A 12 x 12 box is 0.48 deg.
+grid:
+  block: 4
+  box_pixels: 12
+  min_valid_frac: 0.5        # a block value needs at least half of its 16 sub-pixels valid
+
+# Cities inside the TNAQ export ([lat, lon] of the box centre). Chennai uses the original box
+# (79.96-80.44 E, 12.82-13.30 N) but the export ends at 80.36 E, so it is 12 x 10 (the lost columns are sea).
+cities:
+  Chennai: [13.06, 80.20]
+  Coimbatore: [11.02, 76.97]
+  Madurai: [9.93, 78.12]
+  Tiruchirappalli: [10.80, 78.69]
+  Salem: [11.66, 78.15]
+  Tiruppur: [11.11, 77.34]
+  Hosur: [12.74, 77.83]
+  Vellore: [12.92, 79.13]
+  Thoothukudi: [8.79, 78.13]
+
+# Same season for both clocks: Jan-Apr is the driest, least cloudy part of the year in Tamil Nadu, after the NE
+# monsoon. It is present in every year 2019-2024 of the local S2 export (2023 has only 3 April windows).
+season_months: [1, 2, 3, 4]
+min_windows: 4               # per pixel and year, for both the S2 composite and the NO2 seasonal mean
+
+# Land classes, applied per pixel of a same-season median composite (the same rules in the local 1 km proxy
+# and in the Earth Engine 10-20 m script, scripts/ee_s2_landfrac.py). Order matters: first match wins.
+classes:
+  water: "MNDWI > 0"                       # (green - swir1) / (green + swir1)
+  vegetation: "NDVI >= 0.3"
+  builtup: "NDBI > 0"                      # (swir1 - nir) / (swir1 + nir); also catches bare soil (limitation)
+  other: "rest"
+dL_class: builtup                          # the land change tested in G1
+
+# Years. Test year is 2025 (not downloaded yet). 2024 was the old test year, scored once in F5, and it stays
+# out of every fitting and tuning step. Only tuning years are used for G1 and anything fitted.
+years:
+  tuning: [2019, 2020, 2021, 2022, 2023]
+  held_out_record: [2024]
+  test: [2025]
+  lockdown_year: 2020          # its NO2 is distorted by the COVID lockdown; G1 is reported with and without it
+
+# G1 power check: can the 12x12 pixels of the available cities detect the effect?
+g1:
+  alpha: 0.05
+  power: 0.8
+  # Assumed effect to detect: +0.5 % NO2 column per percentage point of built-up gain (10 pp -> ~5 %).
+  # Placeholder: replace with the ADR-001 value.
+  effect_pct_per_pp: 0.5
+  dL_meaningful_pp: 5.0        # a pixel-year counts as "changed" when |dL| exceeds this
+
+# ERA5 (scripts/cds_era5.py): one request per year, the TNAQ box padded by 1 deg, around the S5P overpass
+# (~13:30 local = 08 UTC). Reduced to scalars per city and window.
+era5:
+  pad_deg: 1.0
+  hours_utc: ["06:00", "07:00", "08:00", "09:00"]
+  variables: [10m_u_component_of_wind, 10m_v_component_of_wind, boundary_layer_height, 2m_temperature,
+              surface_pressure, total_precipitation, total_cloud_cover]
+  years: [2019, 2020, 2021, 2022, 2023, 2024, 2025]

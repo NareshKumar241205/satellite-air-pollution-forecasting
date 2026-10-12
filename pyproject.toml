@@ -18,6 +18,7 @@ build-backend = "uv_build"
 dev = [
     "aqf-analysis",
     "aqf-forecast",
+    "aqf-land",
     "ipykernel>=7.4.0",
     "nbclient>=0.11.0",
     "nbformat>=5.11.1",
@@ -26,12 +27,13 @@ dev = [
 
 # Each project phase is a workspace member in its own folder, built on this core package.
 [tool.uv.workspace]
-members = ["Data Analysis", "Forecasting"]
+members = ["Data Analysis", "Forecasting", "Land Change"]
 
 [tool.uv.sources]
 aqf-analysis = { workspace = true }
 aqf-forecast = { workspace = true }
+aqf-land = { workspace = true }
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "Data Analysis/tests", "Forecasting/tests"]
+testpaths = ["tests", "Data Analysis/tests", "Forecasting/tests", "Land Change/tests"]
 addopts = "-p no:cacheprovider"   # no .pytest_cache folder
