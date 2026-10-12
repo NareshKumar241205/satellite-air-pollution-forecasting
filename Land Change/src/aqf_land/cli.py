@@ -137,6 +137,84 @@ def g1(cfg: dict, pairs: pd.DataFrame) -> pd.DataFrame:
     return res
 
 
+def _deweathered(cfg: dict, tune: list[int]) -> dict | None:
+    """{(site, year): (Hb, Wb)} deweathered 100*log NO2, or None without ERA5 for every tuning year."""
+    from aqf_land.deweather import deweather_site
+    from aqf_land.tnaq import block_mean, read_cities
+
+    f = cfg["outputs"] / "P1_era5" / "era5_city_windows.csv"
+    if not f.exists():
+        return None
+    era = pd.read_csv(f, parse_dates=["window"])
+    if not set(tune) <= set(era.window.dt.year):
+        return None
+    no2 = read_cities(cfg, "NO2")
+    g = cfg["grid"]
+    out = {}
+    for s in cfg["cities"]:
+        met = era[era.city == s].set_index("window")
+        blocks = block_mean(no2[s][:, 0], g["block"], g["min_valid_frac"])
+        for y, v in deweather_site(blocks, no2["dates"], met, tune, cfg["season_months"], cfg["min_windows"]).items():
+            out[(s, y)] = v
+    return out
+
+
+def panel(cfg: dict, n_boot: int = 500, n_placebo: int = 500) -> None:
+    from aqf_land import panel as pn
+    from aqf_land.layers import CLASSES
+
+    out = cfg["outputs"] / "C2_panel_EXPLORATORY"
+    out.mkdir(parents=True, exist_ok=True)
+    z = np.load(cfg["outputs"] / "P1_layers" / "land_fractions_no2_season.npz")
+    tune = cfg["years"]["tuning"]                                         # 2024 and 2025 are never read
+    k = CLASSES.index(cfg["dL_class"])
+    variants = {"raw Jan-Apr NO2 (log of seasonal mean)": None}
+    dw = _deweathered(cfg, tune)
+    if dw is not None:
+        variants["ERA5-deweathered Jan-Apr NO2 (mean of window logs)"] = dw
+    rng = np.random.default_rng(cfg.get("seed", 0))
+    rows, notes = [], []
+
+    def add(variant, model, term, est, draws):
+        lo, hi = np.percentile(draws, [2.5, 97.5])
+        rows.append({"outcome": variant, "model": model, "term": term, "estimate": est,
+                     "boot_se": float(np.std(draws, ddof=1)), "ci95_lo": lo, "ci95_hi": hi, "n_draws": len(draws)})
+
+    for variant, ylog in variants.items():
+        p = pn.build_panel(z, list(cfg["cities"]), tune, k, ylog)
+        b = pn.fit(p, ["L", "WL"])
+        bs = pn.block_bootstrap(p, ["L", "WL"], n_boot, rng)
+        add(variant, "panel two-way FE + SLX", "L (own built-up)", b[0], bs[:, 0])
+        add(variant, "panel two-way FE + SLX", "WL (neighbour built-up)", b[1], bs[:, 1])
+        bl = pn.fit(p, ["L", "L_lead", "L_lag", "WL"])
+        bls = pn.block_bootstrap(p, ["L", "L_lead", "L_lag", "WL"], n_boot, rng)
+        for j, term in enumerate(["L", "L_lead (placebo: must be ~0)", "L_lag", "WL"]):
+            add(variant, "lead/lag (2020-2022 outcomes)", term, bl[j], bls[:, j])
+        b_ld, d = pn.long_difference_fit(p, tune[0], tune[-1])
+        add(variant, f"long difference {tune[0]}->{tune[-1]} + site FE (G1 design)", "dL", b_ld,
+            pn.long_difference_bootstrap(d, n_boot, rng))
+        plac = pn.placebo(p, n_placebo, rng)
+        p_perm = float((np.abs(plac) >= abs(b[0])).mean())
+        notes.append(f"- {variant}: spatial placebo ({n_placebo} draws) median b = {np.median(plac):.3f}, 95 % of |b| "
+                     f"below {np.percentile(np.abs(plac), 95):.3f}; permutation p for the panel b = {p_perm:.3f}.")
+        log.info("C2 (exploratory, %s): b = %.3f %%/pp [%.3f, %.3f], long-diff b = %.3f, lead = %.3f, placebo p = %.3f",
+                 variant, b[0], *np.percentile(bs[:, 0], [2.5, 97.5]), b_ld, bl[1], p_perm)
+    res = pd.DataFrame(rows)
+    res.to_csv(out / "estimates.csv", index=False)
+    mde = json.loads((cfg["outputs"] / "G1_power" / "G1_RESULT.json").read_text())["pooled"]
+    mde_ld = mde[f"long_{tune[0]}_{tune[-1]}"]["mde_pct_per_pp"]
+    head = pn.EXPLORATORY if dw is None else pn.EXPLORATORY.replace(
+        "raw Jan-Apr NO2, no ERA5 deweathering", "raw and ERA5-deweathered Jan-Apr NO2")
+    lines = [f"# C2 panel: {head}", "",
+             f"G1 detection limit (pooled long difference, 80 % power): **{mde_ld:.2f} % NO2 per pp**. "
+             "Estimates below that size can't be told apart from zero by this design; a null here is not evidence of "
+             "no effect.",
+             f"Sites: {len(cfg['cities'])}, years {tune[0]}-{tune[-1]} (Jan-Apr). Spatial-block bootstrap: {n_boot} "
+             "draws of 4x4-pixel blocks within site.", "",
+             res.round(3).to_markdown(index=False), "", *notes]
+    (out / "C2_PANEL_EXPLORATORY.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def _g1_figures(cfg: dict, pairs: pd.DataFrame, out) -> None:
     import matplotlib
 
@@ -189,6 +267,7 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("provenance", help="TROPOMI processor versions: what the local export records")
     sub.add_parser("layers", help="yearly land fractions, same-season NO2, per-pixel year-pair table")
     sub.add_parser("g1", help="gate G1: dL distribution and power over the 12x12 pixels (tuning years only)")
+    sub.add_parser("panel", help="C2 panel, EXPLORATORY: two-way FE + SLX, block bootstrap, placebo, lead/lag")
     sub.add_parser("all", help="cache, layers, provenance, g1")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s: %(message)s", datefmt="%H:%M:%S")
@@ -197,6 +276,9 @@ def main(argv: list[str] | None = None) -> None:
     from aqf_land.tnaq import load_land_config
 
     cfg = load_land_config()
+    if args.cmd == "panel":
+        panel(cfg)
+        return
     if args.cmd == "provenance":
         p = cfg["outputs"] / "P1_layers" / "pixel_year_pairs.csv"
         provenance(cfg, pd.read_csv(p) if p.exists() else None)

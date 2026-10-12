@@ -74,13 +74,56 @@ What this says:
 Box fix: Coimbatore's and Tiruppur's boxes overlapped in the first run (their centres are only 0.37° apart). Tiruppur now
 sits 12 km east, and a test enforces that no two boxes overlap. The 9-city rows above are from the first run.
 
+## Decisions of 12 Oct 2026 and what followed
+
+Naresh decided:
+- **G1** is the pooled long difference 2019→2023, gated at 0.5 %/pp and also reported at 1.0 %/pp;
+- sites are added only by Dynamic World growth;
+- if G1 fails, the C2 panel runs anyway, labelled exploratory.
+
+### Site selection (`SITE_SELECTION.md`, committed before any slope)
+
+- **Result: 0 of 10 candidate tiles qualify.** Their growth scores run from −0.25 to +0.84 pp, against the frozen 1.5 pp threshold.
+- The rest of Tamil Nadu, outside the 18 boxes, isn't growing fast enough to add power, so no sites were added.
+- I didn't loosen the threshold after seeing this (`results/G1_power/site_selection.csv`).
+
+### G1, final
+
+| Design | MDE (80 % power) | at 0.5 %/pp | at 1.0 %/pp |
+|---|---|---|---|
+| Pooled long difference 2019→2023, 18 sites | **0.73 %/pp** | **FAIL** | PASS |
+
+### ERA5 (done, through Earth Engine; no CDS account needed)
+
+- **Source:** `scripts/ee_era5.py` reads `ECMWF/ERA5/HOURLY`, the same ERA5 single levels as CDS.
+- **Reduction:** 06–09 UTC hours, each site box widened by 0.25°. One row per site and 5-day window, 2019–2025.
+- **Output:** `results/P1_era5/era5_city_windows.csv`, with the same columns as `cds_era5.py`.
+- **Not used:** 2024 and 2025 aren't used by any model.
+
+### C2 panel, EXPLORATORY (`results/C2_panel_EXPLORATORY/`)
+
+It uses tuning years 2019–2023 only. The model has pixel and site×year fixed effects plus own and neighbour built-up (SLX). Uncertainty comes from a spatial-block bootstrap (4×4 pixels, 500 draws), alongside a spatial placebo, a lead/lag check and the long difference. I ran it on raw NO2 and on ERA5-deweathered NO2.
+
+| Outcome | own built-up b (%/pp) [95 % CI] | long difference b | lead L(t+1), must be ≈ 0 | neighbour WL |
+|---|---|---|---|---|
+| raw | −0.004 [−0.08, 0.09] | −0.03 [−0.15, 0.10] | **+0.31 [0.14, 0.45]** | +0.27 [0.05, 0.48] |
+| deweathered | −0.002 [−0.08, 0.07] | +0.00 [−0.13, 0.14] | **+0.35 [0.19, 0.46]** | +0.41 [0.20, 0.60] |
+
+Reading:
+1. **No own-pixel effect is visible.** The bootstrap CIs are narrower than the G1 MDE (0.73), because the MDE is conservative: it counts every negative dL as noise.
+2. **Attenuation.** Dynamic World label noise (≈ 2 pp) is larger than the real 4-year change (≈ 1.4 pp), so the estimates are attenuated toward zero by roughly ×0.3. An attenuation-corrected upper bound is about 0.3 %/pp; this is a rough figure.
+3. **The lead test fails in both versions.** Next year's built-up "predicts" this year's NO2, and the neighbour term is significant. Neither can be causal, so **the panel is confounded and none of its land coefficients should be read as effects.**
+   - A likely cause is that Dynamic World labels respond to the same conditions as NO2, for example haze or dry-season surface brightness.
+   - Another is that growth areas differ in unmodelled ways.
+4. Deweathering changes nothing important. With site×year fixed effects, site-wide weather is already absorbed.
+
 ## Still to do (needs your accounts)
 
 | Step | Script | Needs |
 |---|---|---|
 | ~~Exact processor versions~~ | **done** (`ee_s5p_versions.py --project airline-portal`) | |
 | ~~Real dL~~ | **done**: `ee_s2_landfrac.py --project airline-portal --years 2019 … 2025 --classifier dynamicworld --direct` | |
-| ERA5 per year, padded box, overpass hours → scalars per city and window | `uv run --with cdsapi python "Land Change/scripts/cds_era5.py" download`, then `uv run --with xarray --with netcdf4 python "Land Change/scripts/cds_era5.py" reduce` | CDS account, `~/.cdsapirc`, ERA5 licence accepted |
+| ~~ERA5~~ | **done via Earth Engine** (`ee_era5.py`). `cds_era5.py` stays as the CDS alternative. | |
 | ~~2025 test-year NO2~~ | **done**: `ee_s5p_no2_windows.py --project airline-portal --year 2025`. 73 windows went to `data/tnaq_extra/` (22 MB), not `Dataset/`. Same method as the TNAQ export: `--check` on 2021-07-04 and 2024-01-05 reproduced the local files bit for bit (same mask, max diff 0). 2025 is loaded but not used by any step yet; it's for the final scoring only. | |
 
 The ERA5 reducer was tested end-to-end on a synthetic NetCDF only; no ERA5 data exists on this machine.

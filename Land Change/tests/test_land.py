@@ -142,3 +142,43 @@ def test_land_from_csv_needs_every_year_and_valid_blocks(tmp_path):
     assert land_from_csv(tmp_path, "X", (2, 2), [2019, 2020, 2021], 0.5) is None
     land = land_from_csv(tmp_path, "X", (2, 2), [2019, 2020], 0.5)
     assert land[2020][2, 0, 0] == pytest.approx(0.4) and np.isnan(land[2020][2, 1, 1]) and np.isnan(land[2019][0, 0, 1])
+
+
+def test_panel_two_way_fe_recovers_a_planted_slope_and_placebo_centres_on_zero():
+    from aqf_land.panel import block_bootstrap, fit, long_difference_fit, placebo
+
+    rng = np.random.default_rng(0)
+    rows = []
+    for s in ("A", "B"):
+        r, c = np.indices((8, 8))
+        a_p = rng.normal(0, 30, 64)                       # pixel effects, correlated with land level
+        L0 = 20 + 0.3 * a_p + rng.normal(0, 5, 64)
+        trend = rng.gamma(1.5, 1.0, 64)
+        for t, y in enumerate(range(2019, 2024)):
+            L = L0 + trend * t
+            yy = a_p + 7 * t * (s == "B") + 0.8 * L + rng.normal(0, 2, 64)
+            rows.append(pd.DataFrame({"site": s, "year": y, "row": r.ravel(), "col": c.ravel(), "L": L,
+                                      "WL": rng.normal(0, 1, 64), "y": yy}))
+    p = pd.concat(rows, ignore_index=True)
+    p["pixel"] = p.site + ":" + p.row.astype(str) + ":" + p.col.astype(str)
+    p["blk"] = p.site + ":" + (p.row // 4).astype(str) + ":" + (p.col // 4).astype(str)
+    assert fit(p, ["L", "WL"])[0] == pytest.approx(0.8, abs=0.1)     # same as the dummy-variable regression
+    bs = block_bootstrap(p, ["L", "WL"], 20, np.random.default_rng(0))
+    assert bs[:, 0].std() < 0.2
+    assert abs(np.median(placebo(p, 20, np.random.default_rng(1)))) < 0.4
+    b_ld, _ = long_difference_fit(p, 2019, 2023)
+    assert b_ld == pytest.approx(0.8, abs=0.15)
+
+
+def test_deweather_removes_a_planted_weather_effect_but_keeps_the_year_level():
+    from aqf_land.deweather import MET, deweather_site
+
+    rng = np.random.default_rng(0)
+    dates = pd.date_range("2019-01-01", "2023-12-31", freq="5D")
+    met = pd.DataFrame(rng.normal(size=(len(dates), len(MET))), index=dates, columns=MET)
+    level = {y: 10.0 * k for k, y in enumerate(range(2019, 2024))}      # slow change: must survive
+    y = np.array([level[d.year] for d in dates]) + 30 * met.blh.to_numpy() + rng.normal(0, 1, len(dates))
+    blocks = np.exp((y + 300) / 100)[:, None, None].repeat(2, 1).repeat(2, 2)
+    out = deweather_site(blocks, dates, met, list(range(2019, 2024)), [1, 2, 3, 4], 4)
+    v = np.array([out[yr][0, 0] for yr in range(2019, 2024)])
+    assert np.allclose(np.diff(v), 10, atol=1.0)                          # year steps kept, weather (sd 30) gone
