@@ -61,11 +61,27 @@ def covariates(y, months, region):
 WHAT = {"dwprob": dwprob, "obt": obt, "covariates": covariates}
 
 
+def fetch(img: ee.Image, blocks: ee.FeatureCollection, scale: float, y: int) -> list[dict]:
+    table = (img.reduceRegions(collection=blocks, reducer=ee.Reducer.mean(), scale=scale, tileScale=8)
+             .map(lambda f: f.set("year", y).setGeometry(None)))
+    for attempt in range(5):
+        try:
+            return [f["properties"] for f in table.getInfo()["features"]]
+        except Exception as err:                           # EEException or HttpError (computation timed out)
+            if attempt == 4:
+                raise
+            print("retry", y, str(err)[:120])
+            time.sleep(15 * 2 ** attempt)
+    return []
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--project", required=True)
     ap.add_argument("--what", choices=list(WHAT), required=True)
     ap.add_argument("--years", type=int, nargs="+", required=True)
+    ap.add_argument("--per-site", action="store_true",
+                    help="one small request per site (resumable partial files); use when a whole year times out")
     args = ap.parse_args()
     ee.Initialize(project=args.project)
     cfg = load_land_config()
@@ -78,18 +94,21 @@ def main() -> None:
         if out.exists():
             print(y, "exists")
             continue
-        img, scale = WHAT[args.what](y, cfg["season_months"], region)
-        table = img.reduceRegions(collection=blocks, reducer=ee.Reducer.mean(), scale=scale, tileScale=8) \
-            .map(lambda f: f.set("year", y).setGeometry(None))
-        for attempt in range(5):
-            try:
-                rows = [f["properties"] for f in table.getInfo()["features"]]
-                break
-            except Exception as err:                       # EEException or HttpError (computation timed out)
-                if attempt == 4:
-                    raise
-                print("retry", y, err)
-                time.sleep(15 * 2 ** attempt)
+        if args.per_site:
+            part_dir = out_dir / f"_parts_{y}"
+            part_dir.mkdir(exist_ok=True)
+            rows = []
+            for site in cfg["cities"]:
+                part = part_dir / f"{site}.csv"
+                if not part.exists():
+                    sb = blocks.filter(ee.Filter.eq("city", site))
+                    img, scale = WHAT[args.what](y, cfg["season_months"], sb.geometry().bounds())
+                    pd.DataFrame(fetch(img, sb, scale, y)).to_csv(part, index=False)
+                    print(y, site, "done")
+                rows += pd.read_csv(part).to_dict("records")
+        else:
+            img, scale = WHAT[args.what](y, cfg["season_months"], region)
+            rows = fetch(img, blocks, scale, y)
         pd.DataFrame(rows).to_csv(out, index=False)
         print(y, len(rows), "blocks ->", out)
 

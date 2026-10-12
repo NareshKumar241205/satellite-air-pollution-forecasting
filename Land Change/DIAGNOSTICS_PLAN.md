@@ -33,3 +33,12 @@ Reported for each layer:
 - whether the confounding signature is gone (the lead CI covers 0 **and** the neighbour term's CI covers 0).
 
 Whichever layer is used later, the choice must be made on the noise and lead-test criteria above, not on the size of the own-pixel slope.
+
+## Addendum (13 Oct 2026, committed before running): post-hoc diagnostic D7
+
+D4 showed that the lead is carried by outcome year 2020 (the lockdown). D7 re-runs the same C2 panel, with the same layers, bootstrap and placebo, with the **2020 outcomes removed**. 2020 land values are kept, so they can still act as leads or lags of other years. The long difference 2019→2023 is unchanged.
+
+D7 is **post hoc and labelled as such**. It cannot change rule B (B = 0 stands, because G1 fails), the site set, or any forecast setting. It is reported to show what the panel says once the lockdown year is out:
+- the lead coefficient (outcomes 2021–2022);
+- the neighbour term;
+- the own-pixel slope.
