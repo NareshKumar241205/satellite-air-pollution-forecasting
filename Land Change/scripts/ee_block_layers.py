@@ -85,7 +85,7 @@ def main() -> None:
             try:
                 rows = [f["properties"] for f in table.getInfo()["features"]]
                 break
-            except ee.EEException as err:
+            except Exception as err:                       # EEException or HttpError (computation timed out)
                 if attempt == 4:
                     raise
                 print("retry", y, err)

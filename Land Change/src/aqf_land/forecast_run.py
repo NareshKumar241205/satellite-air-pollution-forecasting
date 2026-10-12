@@ -185,8 +185,8 @@ def lead_arrays(a, alast, phi, years, span):
     return out
 
 
-def run(cfg: dict, rescore: bool = False) -> None:
-    out = cfg["outputs"] / "C3_forecast"
+def run(cfg: dict, rescore: bool = False, val_only: bool = False) -> None:
+    out = cfg["outputs"] / ("C3_forecast_valcheck" if val_only else "C3_forecast")
     out.mkdir(parents=True, exist_ok=True)
     rules = json.loads((cfg["outputs"] / "B_decision.json").read_text())
     if rules["B"] != 0:
@@ -274,6 +274,9 @@ def run(cfg: dict, rescore: bool = False) -> None:
                       "shrinkage of a refit ML model would be biased); every other part is refitted on 2019-2024."}
     (out / "FROZEN.json").write_text(json.dumps(frozen, indent=2))
 
+    if val_only:
+        log.info("validation-only check finished (2025 not touched)")
+        return
     # ---------------- final: refit on 2019-2024, score 2025 once ----------------
     flag = out / "TEST_SCORED.json"
     if flag.exists() and not rescore:

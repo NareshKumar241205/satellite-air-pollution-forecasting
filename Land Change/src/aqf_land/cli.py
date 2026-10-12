@@ -345,9 +345,11 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("provenance", help="TROPOMI processor versions: what the local export records")
     sub.add_parser("layers", help="yearly land fractions, same-season NO2, per-pixel year-pair table")
     sub.add_parser("g1", help="gate G1: dL distribution and power over the 12x12 pixels (tuning years only)")
+    sub.add_parser("figures", help="report figures from the saved result tables")
     sub.add_parser("bdecision", help="apply decision rule B to the per-layer G1 and C2 results")
     sf = sub.add_parser("forecast", help="DECISION_RULES C-E: validation ladder, fusion, then the one-time 2025 test")
     sf.add_argument("--rescore-test", action="store_true", help="only to reproduce identical numbers; never to tune")
+    sf.add_argument("--validation-only", action="store_true", help="debug run of the validation stage; 2025 untouched")
     sub.add_parser("diag", help="lead-test diagnostics D1-D6 (Land Change/DIAGNOSTICS_PLAN.md)")
     sub.add_parser("panel", help="C2 panel, EXPLORATORY: two-way FE + SLX, block bootstrap, placebo, lead/lag")
     sub.add_parser("all", help="cache, layers, provenance, g1")
@@ -364,13 +366,18 @@ def main(argv: list[str] | None = None) -> None:
     if args.cmd == "diag":
         diagnostics(cfg)
         return
+    if args.cmd == "figures":
+        from aqf_land import figures
+
+        figures.run(cfg)
+        return
     if args.cmd == "bdecision":
         b_decision(cfg)
         return
     if args.cmd == "forecast":
         from aqf_land import forecast_run
 
-        forecast_run.run(cfg, rescore=args.rescore_test)
+        forecast_run.run(cfg, rescore=args.rescore_test, val_only=args.validation_only)
         return
     if args.cmd == "panel":
         panel(cfg)
