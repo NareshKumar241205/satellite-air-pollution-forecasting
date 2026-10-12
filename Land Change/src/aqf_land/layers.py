@@ -108,3 +108,22 @@ def pair_table(city: str, lat: np.ndarray, lon: np.ndarray, land: dict[int, np.n
             d["dNO2"] = np.where(ok, 100 * np.log(b / a), np.nan)
         rows.append(pd.DataFrame(d))
     return pd.concat(rows, ignore_index=True)
+
+
+def land_from_csv(csv_dir, city: str, shape: tuple[int, int], years: list[int],
+                  min_valid_frac: float) -> dict[int, np.ndarray] | None:
+    """{year: (C, Hb, Wb)} from the Earth Engine 20 m tables (scripts/ee_s2_landfrac.py), or None if a year is
+    missing. Blocks with valid_frac below min_valid_frac are NaN."""
+    files = {int(p.stem.split("_")[-1]): p for p in csv_dir.glob("landfrac_*.csv")}
+    if not set(years) <= set(files):
+        return None
+    out = {}
+    for y in years:
+        d = pd.read_csv(files[y])
+        d = d[d.city == city]
+        a = np.full((len(CLASSES), *shape), np.nan)
+        ok = d.valid_frac >= min_valid_frac
+        for k, c in enumerate(CLASSES):
+            a[k, d.row[ok], d.col[ok]] = d[c][ok]
+        out[y] = a
+    return out

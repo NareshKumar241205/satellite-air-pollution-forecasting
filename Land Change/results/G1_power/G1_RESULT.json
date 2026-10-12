@@ -1,0 +1,83 @@
+{
+  "passes": false,
+  "effect_pct_per_pp": 0.5,
+  "tuning_years": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "cities": [
+    "Chennai",
+    "Coimbatore",
+    "Madurai",
+    "Tiruchirappalli",
+    "Salem",
+    "Tiruppur",
+    "Hosur",
+    "Vellore",
+    "Thoothukudi"
+  ],
+  "dL_source": {
+    "Chennai": "provisional 1 km TNAQ S2",
+    "Coimbatore": "provisional 1 km TNAQ S2",
+    "Madurai": "provisional 1 km TNAQ S2",
+    "Tiruchirappalli": "provisional 1 km TNAQ S2",
+    "Salem": "provisional 1 km TNAQ S2",
+    "Tiruppur": "provisional 1 km TNAQ S2",
+    "Hosur": "provisional 1 km TNAQ S2",
+    "Vellore": "provisional 1 km TNAQ S2",
+    "Thoothukudi": "provisional 1 km TNAQ S2"
+  },
+  "pooled": {
+    "all_tuning_pairs": {
+      "n": 4456,
+      "dL_sd_within": 18.4744312521,
+      "dL_noise_sd": 32.3392959855,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": -0.9876395532,
+      "dNO2_resid_sd": 7.821081378,
+      "n_eff": 539.0922708083,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 1.8874223136,
+      "passes": false
+    },
+    "no_lockdown_year": {
+      "n": 2228,
+      "dL_sd_within": 15.054461633,
+      "dL_noise_sd": 21.6586760592,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": -0.9832802559,
+      "dNO2_resid_sd": 7.4282920641,
+      "n_eff": 323.3497294094,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 2.3146565162,
+      "passes": false
+    },
+    "no_v1_v2_pair": {
+      "n": 3342,
+      "dL_sd_within": 19.192147996,
+      "dL_noise_sd": 33.643003057,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": -0.9878540582,
+      "dNO2_resid_sd": 8.2689990218,
+      "n_eff": 363.1536398033,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 2.4313169223,
+      "passes": false
+    },
+    "long_2019_2023": {
+      "n": 1114,
+      "dL_sd_within": 24.2925464751,
+      "dL_noise_sd": 46.692593133,
+      "dL_signal_sd": 0.0,
+      "corr_dL_dveg": -0.9905264084,
+      "dNO2_resid_sd": 6.609760866,
+      "n_eff": 155.3412046329,
+      "mde_pct_per_pp": null,
+      "sd_required_pp": 2.9715034997,
+      "passes": false
+    }
+  }
+}

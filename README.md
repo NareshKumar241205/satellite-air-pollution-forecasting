@@ -43,6 +43,16 @@ Without the data, `uv run pytest` still runs the unit tests and skips the tests 
 The project is a uv workspace. The shared core package `aqf` (`src/aqf/`) holds the config, data loading and
 data-quality rules. Each phase lives in its own folder with its own code, tests, results and report.
 
+## Phase 3: Land Change, ADR-001 (`Land Change/`)
+
+Dual-clock land-use change → NO2 change on nine Tamil Nadu cities (local TNAQ export). Phase 1 data prep and
+gate G1 are in [`Land Change/REPORT.md`](<Land Change/REPORT.md>). G1 currently **fails**: the local 1 km S2 proxy
+tracks greenness rather than land use. The Earth Engine and ERA5 jobs in `Land Change/scripts/` need credentials.
+
+```bash
+uv run aqf-land all
+```
+
 ## Setup
 
 ```bash

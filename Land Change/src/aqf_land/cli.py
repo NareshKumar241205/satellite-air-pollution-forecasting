@@ -53,6 +53,14 @@ def provenance(cfg: dict, pairs: pd.DataFrame | None = None) -> None:
         "level-dependent one, so G1 is also reported without that pair, and the main analysis must either use a",
         "consistently reprocessed product (S5P-PAL / RPRO v2.4) or model the step as level-dependent.",
     ]
+    ee_csv = out / "ee_processor_versions.csv"
+    if ee_csv.exists():
+        v = pd.read_csv(ee_csv)
+        lines += ["", "## Exact versions from Earth Engine (`scripts/ee_s5p_versions.py`)", "",
+                  v.pivot_table(index="month", columns="value", values="images", aggfunc="sum").fillna(0)
+                  .astype(int).to_markdown()]
+    else:
+        lines += ["", "_Exact versions: not yet queried (`scripts/ee_s5p_versions.py` needs an Earth Engine account)._"]
     if pairs is not None:
         lines += ["", "Mean same-season dNO2 (%, log change) per year pair and city, all available years. A retrieval",
                   "step would show up in every city in the same pair (2020 and 2021 also carry the lockdown and",
@@ -62,17 +70,21 @@ def provenance(cfg: dict, pairs: pd.DataFrame | None = None) -> None:
 
 
 def layers(cfg: dict, no2: dict, s2: dict) -> pd.DataFrame:
-    from aqf_land.layers import CLASSES, land_fractions, no2_seasonal, pair_table
+    from aqf_land.layers import CLASSES, land_fractions, land_from_csv, no2_seasonal, pair_table
     from aqf_land.tnaq import block_lat_lon
 
     out = cfg["outputs"] / "P1_layers"
     out.mkdir(parents=True, exist_ok=True)
     years = cfg["years"]["tuning"] + cfg["years"]["held_out_record"]   # all local years; G1 filters to tuning
-    tables, fr = [], {}
+    tables, fr, sources = [], {}, {}
+    ee_dir = ROOT / "Land Change/data/ee_landfrac"
     for box in no2["boxes"]:
         c = box.city
         lat, lon = block_lat_lon(box, no2["transform"], cfg["grid"]["block"])
-        land = land_fractions(s2[c], s2["dates"], years, cfg)
+        land = land_from_csv(ee_dir, c, (len(lat), len(lon)), years, cfg["grid"]["min_valid_frac"])
+        sources[c] = "Earth Engine 20 m S2_SR_HARMONIZED" if land is not None else "provisional 1 km TNAQ S2"
+        if land is None:
+            land = land_fractions(s2[c], s2["dates"], years, cfg)
         n = no2_seasonal(no2[c], no2["dates"], years, cfg)
         fr.update({f"{c}_{y}": land[y] for y in years})
         fr.update({f"{c}_{y}_no2": n[y] for y in years})
@@ -83,8 +95,8 @@ def layers(cfg: dict, no2: dict, s2: dict) -> pd.DataFrame:
     np.savez_compressed(out / "land_fractions_no2_season.npz", classes=np.array(CLASSES), **fr)
     (out / "layers.json").write_text(json.dumps({
         "season_months": cfg["season_months"], "years": years, "grid_deg": 0.01 * cfg["grid"]["block"],
-        "dL_class": cfg["dL_class"], "classes": cfg["classes"],
-        "note": "Provisional dL from the 0.01 deg (1 km) S2 export; one sub-pixel = 6.25 pp."}, indent=2))
+        "dL_class": cfg["dL_class"], "classes": cfg["classes"], "land_source": sources,
+        "note": "The 1 km proxy moves a block fraction in 6.25 pp steps and tracks greenness (see G1)."}, indent=2))
     log.info("pairs: %d rows, %d with both dL and dNO2", len(pairs), pairs[["dL", "dNO2"]].notna().all(1).sum())
     return pairs
 
@@ -97,14 +109,19 @@ def g1(cfg: dict, pairs: pd.DataFrame) -> pd.DataFrame:
     res = run_g1(pairs, cfg)
     res.to_csv(out / "g1_power.csv", index=False)
     _g1_figures(cfg, pairs, out)
-    allrow = res[(res.city == "ALL") & (res.pairs == "all_tuning_pairs")].iloc[0]
+    keep = ["n", "dL_sd_within", "dL_noise_sd", "dL_signal_sd", "corr_dL_dveg", "dNO2_resid_sd", "n_eff",
+            "mde_pct_per_pp", "sd_required_pp", "passes"]
+    pooled = res[res.city == "ALL"].set_index("pairs")[keep]
+    passes = bool(pooled.passes.any())
     (out / "G1_RESULT.json").write_text(json.dumps({
-        "passes": bool(allrow.passes), "mde_pct_per_pp": float(allrow.mde_pct_per_pp),
-        "effect_pct_per_pp": float(allrow.effect_pct_per_pp), "n_pairs": int(allrow.n),
-        "share_changed": float(allrow.share_changed), "tuning_years": cfg["years"]["tuning"],
-        "dL_source": "provisional 1 km S2 export"}, indent=2))
-    log.info("G1 pooled: MDE %.2f %%/pp vs assumed %.2f -> %s", allrow.mde_pct_per_pp,
-             allrow.effect_pct_per_pp, "PASS" if allrow.passes else "FAIL")
+        "passes": passes, "effect_pct_per_pp": cfg["g1"]["effect_pct_per_pp"],
+        "tuning_years": cfg["years"]["tuning"], "cities": list(cfg["cities"]),
+        "dL_source": json.loads((cfg["outputs"] / "P1_layers" / "layers.json").read_text())["land_source"],
+        "pooled": json.loads(pooled.replace([np.inf], None).to_json(orient="index"))}, indent=2))
+    for name, r in pooled.iterrows():
+        log.info("G1 %-18s signal sd %.2f pp (noise %.1f), MDE %s %%/pp, needs true sd >= %.2f pp -> %s", name,
+                 r.dL_signal_sd, r.dL_noise_sd, f"{r.mde_pct_per_pp:.2f}", r.sd_required_pp,
+                 "PASS" if r.passes else "FAIL")
     return res
 
 

@@ -27,3 +27,6 @@ tools/outputs/
 CLAUDE.md
 CLAUDE.local.md
 .claude/
+
+# Land Change: the pixel-year table and caches are rebuildable (`uv run aqf-land all`); provenance and G1 are tracked
+Land Change/results/P1_layers/

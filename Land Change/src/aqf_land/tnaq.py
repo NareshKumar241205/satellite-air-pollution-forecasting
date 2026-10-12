@@ -84,6 +84,19 @@ def block_lat_lon(box: Box, transform, block: int) -> tuple[np.ndarray, np.ndarr
     return lat, lon
 
 
+def box_bounds(box: Box, transform) -> tuple[float, float, float, float]:
+    """(south, west, north, east) in degrees."""
+    north = transform.f + transform.e * box.row0
+    west = transform.c + transform.a * box.col0
+    return north + transform.e * box.rows, west, north, west + transform.a * box.cols
+
+
+def grid_boxes(cfg: dict) -> tuple[list[Box], object]:
+    """City boxes and the export transform, from the first NO2 file (no full read)."""
+    with rasterio.open(list_files(cfg, "NO2").path.iloc[0]) as src:
+        return city_boxes(cfg, src.transform, src.shape), src.transform
+
+
 def read_cities(cfg: dict, product: str, force: bool = False) -> dict:
     """{'dates', 'transform', 'boxes', city: (T, bands, rows, cols) float32 with NaN = nodata}. Cached."""
     out = cfg["processed"] / f"tnaq_{product.lower()}_cities.npz"
