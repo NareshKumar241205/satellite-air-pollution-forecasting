@@ -182,3 +182,25 @@ def test_deweather_removes_a_planted_weather_effect_but_keeps_the_year_level():
     out = deweather_site(blocks, dates, met, list(range(2019, 2024)), [1, 2, 3, 4], 4)
     v = np.array([out[yr][0, 0] for yr in range(2019, 2024)])
     assert np.allclose(np.diff(v), 10, atol=1.0)                          # year steps kept, weather (sd 30) gone
+
+
+def test_isotonic_fusion_weights_are_non_increasing():
+    from aqf_land.forecast_run import isotonic_decreasing
+
+    g = isotonic_decreasing(np.array([1.0, 0.6, 0.8, 0.3, 0.4, 0.1]))
+    assert np.all(np.diff(g) <= 1e-12) and g[0] == 1.0 and g[-1] == 0.1
+    assert np.allclose(g[1:3], 0.7) and np.allclose(g[3:5], 0.35)
+
+
+def test_trailing_layer_never_uses_later_years(tmp_path):
+    from aqf_land.layers import ALT_LAYERS, CLASSES, land_from_layer
+
+    d, prefix, col, w = ALT_LAYERS["dw_prob_trail3"]
+    (tmp_path / d).mkdir(parents=True)
+    for y, v in {2017: 0.1, 2018: 0.2, 2019: 0.9, 2020: 0.3, 2021: 5.0}.items():
+        pd.DataFrame({"city": "X", "row": [0], "col": [0], "year": y, col: [v]}).to_csv(
+            tmp_path / d / f"{prefix}_{y}.csv", index=False)
+    out = land_from_layer(tmp_path, "dw_prob_trail3", "X", (1, 1), [2019, 2020])
+    k = CLASSES.index("builtup")
+    assert out[2019][k, 0, 0] == pytest.approx(0.2)        # median of 2017-2019, not touched by 2021
+    assert out[2020][k, 0, 0] == pytest.approx(0.3)        # median of 2018-2020

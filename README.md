@@ -45,12 +45,39 @@ data-quality rules. Each phase lives in its own folder with its own code, tests,
 
 ## Phase 3: Land Change, ADR-001 (`Land Change/`)
 
-Dual-clock land-use change → NO2 change on nine Tamil Nadu cities (local TNAQ export). Phase 1 data prep and
-gate G1 are in [`Land Change/REPORT.md`](<Land Change/REPORT.md>). G1 currently **fails**: the local 1 km S2 proxy
-tracks greenness rather than land use. The Earth Engine and ERA5 jobs in `Land Change/scripts/` need credentials.
+This phase covers land-use change → NO2 and a 5–150-day NO2 forecast on **18 Tamil Nadu sites** (0.04° blocks, 2019–2025).
+
+Results:
+- **No land→NO2 effect is detectable.** The detection limit is 0.73 % NO2 per pp of built-up gain, and the lead test is confounded by the 2020 lockdown and aerosol. Land therefore enters the forecast with zero weight.
+- **Forecast skill:** the next-5-day forecast beats climatology by +9.4 % (validation) and +3.6 % (2025 test, scored once). Beyond 10 days, skill is ≈ 0.
+
+Full write-up: [`docs/FINAL_REPORT.md`](docs/FINAL_REPORT.md). Thesis chapter draft: [`docs/THESIS_CHAPTER_DRAFT.md`](docs/THESIS_CHAPTER_DRAFT.md).
+Details and history: [`Land Change/REPORT.md`](<Land Change/REPORT.md>). Pre-registered rules:
+[`SITE_SELECTION.md`](<Land Change/SITE_SELECTION.md>), [`DIAGNOSTICS_PLAN.md`](<Land Change/DIAGNOSTICS_PLAN.md>),
+[`DECISION_RULES.md`](<Land Change/DECISION_RULES.md>).
+
+**Inputs.**
+- **NO2:** the read-only TNAQ export at `../Dataset/Raw`, and 2025 in `data/tnaq_extra_v2`.
+- **Earth Engine tables** (account and project needed, here `airline-portal`): built from `Land Change/scripts/`, all with `uv run --with earthengine-api python ... --project <gcp>`.
+
+| Script | What it produces | Arguments |
+|---|---|---|
+| `ee_s2_landfrac.py` | Dynamic World land fractions | `--classifier dynamicworld --direct --years 2019 … 2025` |
+| `ee_block_layers.py` | DW built-up probability, Open Buildings, haze/cloud covariates | `--what dwprob`, `obt` or `covariates` |
+| `ee_era5.py` | ERA5 scalars per site and window | |
+| `ee_s5p_versions.py` | TROPOMI processor versions | |
+| `ee_s5p_no2_windows.py` | new NO2 windows | `--year 2025` |
 
 ```bash
-uv run aqf-land all
+uv run aqf-land all                                   # cache, land/NO2 layers, provenance, G1
+uv run aqf-land panel                                 # exploratory C2 panel (raw + ERA5-deweathered)
+uv run aqf-land diag                                  # lead-test diagnostics D1-D6
+uv run aqf-land --layer dw_prob_trail3 layers         # steadier layers (also: --layer obt)
+uv run aqf-land --layer dw_prob_trail3 g1
+uv run aqf-land --layer dw_prob_trail3 panel
+uv run aqf-land bdecision                             # rule B -> results/B_decision.json
+uv run aqf-land forecast                              # validation ladder, fusion, 2025 scored once
+uv run aqf-land figures
 ```
 
 ## Setup

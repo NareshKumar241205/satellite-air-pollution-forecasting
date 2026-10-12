@@ -1,5 +1,18 @@
 # Lead-test diagnostics (plan: `Land Change/DIAGNOSTICS_PLAN.md`)
 
+## D1: scene/atmosphere covariates (within site-year r)
+
+| covariate       |      L |   L_lead |   dL_next |   y_res |
+|:----------------|-------:|---------:|----------:|--------:|
+| aod055          |  0.608 |    0.613 |     0.16  |  -0.002 |
+| aod055_next     |  0.622 |    0.628 |     0.112 |  -0.115 |
+| brightness      |  0.469 |    0.475 |     0.141 |   0.008 |
+| brightness_next |  0.498 |    0.506 |     0.128 |  -0.096 |
+| cloud_prob      | -0.019 |   -0.016 |     0.029 |   0.029 |
+| cloud_prob_next | -0.015 |   -0.021 |    -0.077 |   0.02  |
+| dw_images       | -0.082 |   -0.086 |    -0.056 |   0.003 |
+| dw_images_next  | -0.083 |   -0.085 |    -0.023 |   0.014 |
+
 ## D2: level dependence of the yearly label change (within site)
 
 | pair       |   dL_per_100logNO2 |   dL_on_L0 |   dL_sd_within |    n |

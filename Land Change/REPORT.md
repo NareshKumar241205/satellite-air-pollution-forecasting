@@ -117,6 +117,20 @@ Reading:
    - Another is that growth areas differ in unmodelled ways.
 4. Deweathering changes nothing important. With site×year fixed effects, site-wide weather is already absorbed.
 
+## End-to-end run, 12 Oct 2026 evening
+
+**Summary.** The consolidated write-up is [`docs/FINAL_REPORT.md`](../docs/FINAL_REPORT.md), with a chapter draft in
+[`docs/THESIS_CHAPTER_DRAFT.md`](../docs/THESIS_CHAPTER_DRAFT.md). Each step's rules were committed before its results.
+
+| Step | Rule file | Outcome |
+|---|---|---|
+| Lead-test diagnostics | `DIAGNOSTICS_PLAN.md` | Lead driven by the **2020 lockdown** outcome year (0.31 → 0.01 without it); aerosol (AOD) flagged by D1 (2019–2021 covariates; 2022–2024 timed out in EE); not edges, single sites or shared spatial residuals (`results/D_lead_diagnostics/`) |
+| Steadier layers | `DIAGNOSTICS_PLAN.md` | G1 MDE: DW label 0.73, DW prob. trailing-3y 1.52, Open Buildings 4.17 %/pp. Only DW prob. is lead-clean on raw NO2; with deweathered NO2 its lead fails too (`results/layers/`) |
+| Land term B | `DECISION_RULES.md` §B | **B = 0**: G1 fails on every layer (`results/B_decision.json`) |
+| Forecast (validation) | `DECISION_RULES.md` §C–D | Lead 1: Ridge **+9.4 %** [6.4, 13.4], LightGBM +6.5 %, damped persistence +5.4 %. ERA5 helps slightly; land adds nothing. CNN not run (PyTorch download stopped) |
+| 2025 test (frozen) | `DECISION_RULES.md` §E | Lead 1 **+3.6 %** [−1.3, 6.8]; leads 2–30 ≈ 0; 10–90 % coverage 0.81 (`results/C3_forecast/`) |
+| Integrity | – | The first 2025 scoring is invalid: the EE download filled outside-AOI pixels with 0. Files were repaired into `data/tnaq_extra_v2`, the check was fixed, and 2025 was re-scored unchanged. The record is kept in `results/C3_forecast_INVALID_2025_zero_fill/` |
+
 ## Still to do (needs your accounts)
 
 | Step | Script | Needs |

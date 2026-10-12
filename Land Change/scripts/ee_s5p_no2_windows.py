@@ -5,7 +5,7 @@ Same method as AirQ/Scripts/Data_acquisition.js: COPERNICUS/S5P/OFFL/L3_NO2 trop
 Nadu (FAO GAUL level 1), nodata -9999. Windows are 5-day steps anchored at 2018-01-01.
 
 Files are downloaded straight onto the local export grid (0.01 deg, 414 x 547, origin 76.22 E / 13.54 N) into
-data/tnaq_extra/TNAQ_S5P_NO2/, never into Dataset/. `--check YYYYMMDD` re-downloads one existing window and
+data/tnaq_extra_v2/TNAQ_S5P_NO2/, never into Dataset/. `--check YYYYMMDD` re-downloads one existing window and
 compares it with the local file, to confirm the method matches.
 
     uv run --with earthengine-api --with requests python "Land Change/scripts/ee_s5p_no2_windows.py" --project <gcp> --year 2025
@@ -52,6 +52,10 @@ def download(img: ee.Image, path) -> None:
         a = src.read()
         prof = src.profile
         assert (src.width, src.height) == (WIDTH, HEIGHT) and np.allclose(list(src.transform)[:6], TRANSFORM), path
+    # Outside the clip footprint the download is filled with 0 in both bands; the Drive export has NaN there.
+    outside = (a[0] == 0) & (a[1] == 0)
+    a = a.astype("float32")
+    a[:, outside] = np.nan
     prof.update(nodata=-9999.0, compress="deflate")
     with rasterio.open(path, "w", **prof) as dst:
         dst.write(a)
@@ -69,7 +73,7 @@ def main() -> None:
     aoi = (ee.FeatureCollection("FAO/GAUL_SIMPLIFIED_500m/2015/level1")
            .filter(ee.Filter.And(ee.Filter.eq("ADM0_NAME", "India"), ee.Filter.eq("ADM1_NAME", "Tamil Nadu")))
            .geometry())
-    out_dir = ROOT / "data/tnaq_extra/TNAQ_S5P_NO2"
+    out_dir = ROOT / "data/tnaq_extra_v2/TNAQ_S5P_NO2"
     if args.check:
         day = pd.Timestamp(args.check)
         tmp = ROOT / "data/tnaq_check" / f"s5p_no2_{args.check}.tif"
@@ -77,9 +81,12 @@ def main() -> None:
         local = list_files(cfg, "NO2").set_index("date").path[day]
         with rasterio.open(local) as a, rasterio.open(tmp) as b:
             x, y = a.read(1), b.read(1)
-        both = (x != -9999) & (y != -9999) & np.isfinite(x) & np.isfinite(y)
+        def cls(v):                                     # 0 = valid, 1 = -9999 (no orbit), 2 = NaN (outside AOI)
+            return np.where(np.isnan(v), 2, np.where(v == -9999, 1, 0))
+        print("mask classes equal:", float((cls(x) == cls(y)).mean()), "exact zeros new:", float((y == 0).mean()))
+        both = (cls(x) == 0) & (cls(y) == 0)
         print(f"check {args.check}: valid local {np.mean(x != -9999):.3f}, new {np.mean(y != -9999):.3f}, "
-              f"same mask {np.mean((x == -9999) == (y == -9999)):.4f}, "
+              f"same -9999 mask {np.mean((x == -9999) == (y == -9999)):.4f}, "
               f"max |diff| {np.abs(x[both] - y[both]).max():.3g} mol/m2, "
               f"median rel diff {np.median(np.abs(x[both] - y[both]) / np.abs(x[both]).clip(1e-6)):.2e}")
         return
